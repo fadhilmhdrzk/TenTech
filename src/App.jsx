@@ -1,18 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// App.jsx
+import { Routes, Route, Link } from 'react-router-dom';
+import AdminPage from './components/Admin/AdminPage';
+import { useState } from 'react';
 
 function App() {
-  const [count, setCount] = useState(0)
+  return (
+    <div className="p-4">
+      {/* Navigation Bar */}
+      <nav className="mb-6 flex gap-4 bg-blue-100 p-4 rounded-lg">
+        <Link to="/" className="text-blue-600 hover:text-blue-800">
+          Home
+        </Link>
+        <Link to="/admin" className="text-blue-600 hover:text-blue-800">
+          Admin Dashboard
+        </Link>
+      </nav>
+
+      {/* Routes */}
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    </div>
+  );
+}
+
+function HomePage() {
+  const [count, setCount] = useState(0);
 
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
+        <a href="https://vite.dev" target="_blank" rel="noreferrer">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
-        <a href="https://react.dev" target="_blank">
+        <a href="https://react.dev" target="_blank" rel="noreferrer">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
@@ -29,7 +51,7 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
