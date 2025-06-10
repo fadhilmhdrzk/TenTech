@@ -1,4 +1,4 @@
-export default function admin() {
+export default function Guest() {
     return(
         <div>components Guest</div>
     )
