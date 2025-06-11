@@ -1,6 +1,7 @@
-// App.jsx
 import { Routes, Route, Link } from 'react-router-dom';
-import AdminPage from './components/Admin/AdminPage';
+import AdminPage from './pages/Admin/AdminPage';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import AdminLayout from './layouts/Admin/AdminLayout';
 import { useState } from 'react';
 
 function App() {
@@ -16,10 +17,14 @@ function App() {
         </Link>
       </nav>
 
-      {/* Routes */}
+      {/* All Routes including Admin */}
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/*" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="page" element={<AdminPage />} />
+        </Route>
       </Routes>
     </div>
   );
@@ -31,25 +36,11 @@ function HomePage() {
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank" rel="noreferrer">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+        <h1>Welcome to the Homepage</h1>
+        <button onClick={() => setCount(count + 1)}>
+          Count is {count}
         </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
