@@ -8,6 +8,14 @@ const AdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // --- THIS IS THE MISSING/INCORRECTLY PLACED FUNCTION ---
+  // You must define handlePatientSelect inside the component
+  const handlePatientSelect = (patient) => {
+    console.log("Patient clicked:", patient); // Keep this for debugging
+    setSelectedPatient(patient);
+  };
+  // -----------------------------------------------------
+
   useEffect(() => {
     const fetchPatients = async () => {
       setLoading(true);
@@ -64,7 +72,7 @@ const AdminPage = () => {
   // Helper function to format date for display
   const formatDisplayDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return format(parseISO(dateString), 'MMM dd, yyyy');
+    return format(parseISO(dateString), 'MMM dd,PPPP'); // Changed to PPPP for full date format
   };
 
 

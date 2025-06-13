@@ -4,6 +4,8 @@ import AdminPage from './pages/Admin/AdminPage';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminLayout from './layouts/Admin/AdminLayout';
 import Tickets from './pages/Admin/Tickets';
+import DepartmentForm from './components/Admin/DepartmentForm';
+import StaffAccountForm from './components/Admin/StaffAccountForm';
 import { useState } from 'react';
 
 function App() {
@@ -14,16 +16,20 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/guest" element={<Guest />} />
+
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="patients" element={<AdminPage />} />
           <Route path="tickets" element={<Tickets />} />
+          <Route path="add-department" element={<DepartmentForm />} />
+          <Route path="add-staff" element={<StaffAccountForm />} />
           {/* <Route path="appointments" element={<AppointmentsPagePlaceholder />} />
           <Route path="doctors" element={<DoctorManagementPagePlaceholder />} />
           <Route path="reports" element={<ReportsPagePlaceholder />} />
           <Route path="settings" element={<SettingsPagePlaceholder />} /> */}
         </Route>
+
       </Routes>
     </div>
   );

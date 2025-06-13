@@ -39,6 +39,26 @@ const AdminSidebar = () => {
       label: 'Ticket Queue'
     },
     {
+      id: 'add-department',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      path: '/admin/add-department', // The path you defined in your router
+      label: 'Add Department'
+    },
+    {
+      id: 'add-staff',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0 0h3m-3 0h-3m-3-6H9m9 0H9M7 16a2 2 0 01-2-2v-4a2 2 0 012-2h4a2 2 0 012 2v4a2 2 0 01-2 2z" />
+        </svg>
+      ),
+      path: '/admin/add-staff',
+      label: 'Add Staff Account'
+    },
+    {
       id: 'appointments',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,11 +126,10 @@ const AdminSidebar = () => {
           <div
             key={item.id}
             onClick={() => handleNavigation(item.path)}
-            className={`group relative w-14 h-14 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200 ${
-              isActive(item.path)
-                ? 'bg-white text-blue-600 shadow-lg'
-                : 'text-white hover:bg-white/20 hover:scale-105'
-            }`}
+            className={`group relative w-14 h-14 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200 ${isActive(item.path)
+              ? 'bg-white text-blue-600 shadow-lg'
+              : 'text-white hover:bg-white/20 hover:scale-105'
+              }`}
             title={item.label}
           >
             {item.icon}
