@@ -28,6 +28,17 @@ const AdminSidebar = () => {
       label: 'Patient Management'
     },
     {
+      // --- NEW MENU ITEM: TICKETS ---
+      id: 'tickets',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M12 2a3 3 0 00-3 3v12a3 3 0 003 3h5a3 3 0 003-3V5a3 3 0 00-3-3H12zM7 7H4a2 2 0 00-2 2v10a2 2 0 002 2h5" />
+        </svg>
+      ),
+      path: '/admin/tickets', // Assuming you'll set up this route in your router
+      label: 'Ticket Queue'
+    },
+    {
       id: 'appointments',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,14 +107,14 @@ const AdminSidebar = () => {
             key={item.id}
             onClick={() => handleNavigation(item.path)}
             className={`group relative w-14 h-14 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200 ${
-              isActive(item.path) 
-                ? 'bg-white text-blue-600 shadow-lg' 
+              isActive(item.path)
+                ? 'bg-white text-blue-600 shadow-lg'
                 : 'text-white hover:bg-white/20 hover:scale-105'
             }`}
             title={item.label}
           >
             {item.icon}
-            
+
             {/* Tooltip */}
             <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
               {item.label}
@@ -118,7 +129,7 @@ const AdminSidebar = () => {
           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          
+
           {/* Tooltip */}
           <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
             Logout
