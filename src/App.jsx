@@ -18,9 +18,9 @@ import Home from './pages/Guest/Home';
 import Profile from './pages/Guest/Profile';
 // New Guest RS pages
 import Pekanbaru from "./pages/Guest/RS/Pekanbaru";
-import Panam from "./pages/Guest/RS/panam";
+import Panam from "./pages/Guest/RS/Panamanam";
 import Yani from "./pages/Guest/RS/Yani";
-import Hangtuah from "./pages/Guest/RS/hangtuah";
+import Hangtuah from "./pages/Guest/RS/Hangtuahangtuah";
 // New Guest Panduan pages
 import Internasional from "./pages/Guest/Panduan/Internasional";
 import Laporan from "./pages/Guest/Panduan/Laporan";
