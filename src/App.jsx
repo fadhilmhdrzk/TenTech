@@ -17,7 +17,7 @@ import GuestLayout from './layouts/Guest/GuestLayout';
 import Home from './pages/Guest/Home';
 import Profile from './pages/Guest/Profile';
 // New Guest RS pages
-import Pekanbaru from "./pages/Guest/RS/pekanbaru";
+import Pekanbaru from "./pages/Guest/RS/Pekanbaru";
 import Panam from "./pages/Guest/RS/panam";
 import Yani from "./pages/Guest/RS/Yani";
 import Hangtuah from "./pages/Guest/RS/hangtuah";
