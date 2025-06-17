@@ -4,13 +4,15 @@ import axios from "axios";
 import { BsFillExclamationDiamondFill } from "react-icons/bs";
 import { ImSpinner2 } from "react-icons/im";
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [dataForm, setDataForm] = useState({
+    username: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const handleChange = (evt) => {
@@ -26,16 +28,22 @@ export default function Login() {
     setLoading(true);
     setError("");
 
-    // Validasi Form
-    if (!dataForm.email || !dataForm.password) {
-      setError("Username and password required");
+    if (!dataForm.username || !dataForm.email || !dataForm.password || !dataForm.confirmPassword) {
+      setError("All fields are required");
+      setLoading(false);
+      return;
+    }
+
+    if (dataForm.password !== dataForm.confirmPassword) {
+      setError("Passwords do not match");
       setLoading(false);
       return;
     }
 
     axios
-      .post("https://dummyjson.com/user/login", {
-        username: dataForm.email,
+      .post("https://dummyjson.com/user/register", {
+        username: dataForm.username,
+        email: dataForm.email,
         password: dataForm.password,
       })
       .then((response) => {
@@ -43,15 +51,10 @@ export default function Login() {
           setError(response.data.message);
           return;
         }
-        // Redirect to dashboard if login is successful
-        navigate("/");
+        navigate("/login");
       })
       .catch((err) => {
-        if (err.response) {
-          setError(err.response.data.message || "An error occurred");
-        } else {
-          setError(err.message || "An unknown error occurred");
-        }
+        setError(err.message || "An unknown error occurred");
       })
       .finally(() => {
         setLoading(false);
@@ -74,20 +77,17 @@ export default function Login() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg relative">
+      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg relative"> {/* Mengubah max-w-sm menjadi max-w-md */}
         <img
-          src="/src/assets/Guest/Logo.webp" // Ganti dengan path gambar logo
+          src="/src/assets/Guest/Logo.webp" // Menggunakan path gambar logo
           alt="Logo"
-          className="absolute top-4 left-4 w-12 h-12" // Menempatkan gambar di kiri atas
+          className="absolute top-4 left-4 w-12 h-12"
         />
-        {/* Sedap Title with Bold Text */}
         <h1 className="text-5xl font-bold text-[var(--color-tosca-500)] mb-6 text-center">
-          Login
+          Register
         </h1>
-
-        {/* Welcome Back with lighter text */}
         <h2 className="text-2xl font-medium text-gray-500 mb-6 text-center">
-          Welcome Back 👋
+          Create Your Account ✨
         </h2>
 
         {errorInfo}
@@ -96,10 +96,24 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
+              Username
             </label>
             <input
               type="text"
+              id="username"
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-2 focus:ring-[var(--color-tosca-600)]"
+              placeholder="your_username"
+              name="username"
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
+            </label>
+            <input
+              type="email"
               id="email"
               className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-2 focus:ring-[var(--color-tosca-600)]"
               placeholder="you@example.com"
@@ -107,6 +121,7 @@ export default function Login() {
               onChange={handleChange}
             />
           </div>
+
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
@@ -120,31 +135,35 @@ export default function Login() {
               onChange={handleChange}
             />
           </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-2 focus:ring-[var(--color-tosca-600)]"
+              placeholder="********"
+              name="confirmPassword"
+              onChange={handleChange}
+            />
+          </div>
+
           <button
             type="submit"
             className="w-full bg-[var(--color-tosca-500)] hover:bg-[var(--color-tosca-600)] text-white font-bold py-2 px-4 rounded-lg transition duration-300"
           >
-            Login
-          </button>
-        </form>
-        <div className="mt-4 flex justify-between text-sm text-gray-600">
-          <button
-            type="button"
-            onClick={() => navigate("/Forgot")}
-            className="text-blue-600 hover:underline"
-          >
-            Forgot Password?
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/Register")}
-            className="text-blue-600 hover:underline"
-          >
             Register
           </button>
+        </form>
+
+        {/* Link ke Halaman Login di Pojok Kanan Atas */}
+        <div className="text-sm text-center text-blue-600 hover:underline mt-4">
+          <a href="/login">Already have an account? Login here</a>
         </div>
 
-        {/* Footer with RS. Awal Bros Pekanbaru */}
+        {/* Footer */}
         <footer className="mt-6 text-center text-sm text-gray-600">
           <p>© 2025 RS. Awal Bros Pekanbaru. All rights reserved.</p>
         </footer>

@@ -1,16 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { BsFillExclamationDiamondFill } from "react-icons/bs";
-import { ImSpinner2 } from "react-icons/im";
 
-export default function Login() {
+export default function Forgot() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [dataForm, setDataForm] = useState({
     email: "",
-    password: "",
   });
 
   const handleChange = (evt) => {
@@ -26,25 +23,23 @@ export default function Login() {
     setLoading(true);
     setError("");
 
-    // Validasi Form
-    if (!dataForm.email || !dataForm.password) {
-      setError("Username and password required");
+    // Validasi email
+    if (!dataForm.email) {
+      setError("Email is required");
       setLoading(false);
       return;
     }
 
     axios
-      .post("https://dummyjson.com/user/login", {
-        username: dataForm.email,
-        password: dataForm.password,
+      .post("https://dummyjson.com/user/forgot", {
+        email: dataForm.email,
       })
       .then((response) => {
         if (response.status !== 200) {
           setError(response.data.message);
           return;
         }
-        // Redirect to dashboard if login is successful
-        navigate("/");
+        navigate("/login");
       })
       .catch((err) => {
         if (err.response) {
@@ -76,19 +71,21 @@ export default function Login() {
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg relative">
         <img
-          src="/src/assets/Guest/Logo.webp" // Ganti dengan path gambar logo
+          src="/src/assets/Guest/Logo.webp" // Menggunakan path gambar logo
           alt="Logo"
-          className="absolute top-4 left-4 w-12 h-12" // Menempatkan gambar di kiri atas
+          className="absolute top-4 left-4 w-12 h-12"
         />
-        {/* Sedap Title with Bold Text */}
+        
         <h1 className="text-5xl font-bold text-[var(--color-tosca-500)] mb-6 text-center">
-          Login
+          Forgot
         </h1>
-
-        {/* Welcome Back with lighter text */}
         <h2 className="text-2xl font-medium text-gray-500 mb-6 text-center">
-          Welcome Back 👋
+          Forgot Your Password?
         </h2>
+
+        <p className="text-sm text-gray-500 mb-6 text-center">
+          Enter your email address and we'll send you a link to reset your password.
+        </p>
 
         {errorInfo}
         {loadingInfo}
@@ -99,7 +96,7 @@ export default function Login() {
               Email Address
             </label>
             <input
-              type="text"
+              type="email"
               id="email"
               className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-2 focus:ring-[var(--color-tosca-600)]"
               placeholder="you@example.com"
@@ -107,44 +104,25 @@ export default function Login() {
               onChange={handleChange}
             />
           </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-2 focus:ring-[var(--color-tosca-600)]"
-              placeholder="********"
-              name="password"
-              onChange={handleChange}
-            />
-          </div>
           <button
             type="submit"
-            className="w-full bg-[var(--color-tosca-500)] hover:bg-[var(--color-tosca-600)] text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+            className="w-full bg-[var(--color-tosca-500)] hover:bg-[var(--color-tosca-600)] text-white font-semibold py-2 px-4 rounded-lg transition duration-300"
           >
-            Login
+            Send Reset Link
           </button>
         </form>
-        <div className="mt-4 flex justify-between text-sm text-gray-600">
+
+        {/* Link ke Halaman Login */}
+        <div className="mt-4 text-center text-sm text-blue-600 hover:underline">
           <button
             type="button"
-            onClick={() => navigate("/Forgot")}
-            className="text-blue-600 hover:underline"
+            onClick={() => navigate("/login")}
           >
-            Forgot Password?
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/Register")}
-            className="text-blue-600 hover:underline"
-          >
-            Register
+            Back to Login
           </button>
         </div>
 
-        {/* Footer with RS. Awal Bros Pekanbaru */}
+        {/* Footer */}
         <footer className="mt-6 text-center text-sm text-gray-600">
           <p>© 2025 RS. Awal Bros Pekanbaru. All rights reserved.</p>
         </footer>
