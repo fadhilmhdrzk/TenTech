@@ -1,22 +1,31 @@
-import { Routes, Route, Link } from 'react-router-dom';
-import Guest from './pages/Guest/guest';
-import AdminPage from './pages/Admin/AdminPage';
+import { Routes, Route, Link } from 'react-router-dom'; // Keep Link as it's useful for navigation
+import { useState } from 'react'; // Keep useState
+
+// --- Import from HEAD (Admin/Guest related) ---
+// Correct path for AdminPage - assuming the one in 'pages' is the main one
+import AdminPage from './pages/Admin/AdminPage'; // Or components/Admin/AdminPage - verify the correct path!
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminLayout from './layouts/Admin/AdminLayout';
 import Tickets from './pages/Admin/Tickets';
 import DepartmentForm from './components/Admin/DepartmentForm';
 import StaffAccountForm from './components/Admin/StaffAccountForm';
-import { useState } from 'react';
+import Guest from './pages/Guest/guest'; // Ensure this is the correct Guest page import
+
+// --- Import from e886d8a47d6318f8e34b0dd7cb008d05d3b6f1c7 (Auth/Guest related) ---
+import GuestLayout from './layouts/Guest/GuestLayout';
+import Home from './pages/Guest/Home';
+import Profile from './pages/Guest/Profile';
+
+import Login from './pages/Auth/login';
+import Register from './pages/Auth/Register';
+import Forgot from './pages/Auth/Forgot';
 
 function App() {
   return (
     <div className="p-4">
-
-      {/* All Routes including Admin */}
+      {/* Combined Routes */}
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/guest" element={<Guest />} />
-
+        {/* Admin Routes (from HEAD) */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
@@ -24,17 +33,53 @@ function App() {
           <Route path="tickets" element={<Tickets />} />
           <Route path="add-department" element={<DepartmentForm />} />
           <Route path="add-staff" element={<StaffAccountForm />} />
+          {/* Keep placeholders if they are still relevant for future development */}
           {/* <Route path="appointments" element={<AppointmentsPagePlaceholder />} />
           <Route path="doctors" element={<DoctorManagementPagePlaceholder />} />
           <Route path="reports" element={<ReportsPagePlaceholder />} />
           <Route path="settings" element={<SettingsPagePlaceholder />} /> */}
         </Route>
 
+        {/* Guest Routes (Combined from both) */}
+        {/*
+            If '/guest' is meant to be a specific page and the GuestLayout contains the main guest section,
+            you need to decide which takes precedence or how they should coexist.
+            Let's assume the GuestLayout wraps the main guest experience.
+        */}
+        <Route element={<GuestLayout />}>
+          <Route path="/" element={<Home />} /> {/* This is the main Guest homepage */}
+          <Route path="/profile" element={<Profile />} />
+          {/* If the '/guest' route from HEAD is for a *different* page than Home, add it here.
+              If 'Home' is the main guest page, you might remove the separate '/guest' route or rename it.
+              For now, let's keep it if it's distinct.
+          */}
+          <Route path="/guest" element={<Guest />} />
+        </Route>
+
+        {/* Auth Routes (from e886d8a47d6318f8e34b0dd7cb008d05d3b6f1c7) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot" element={<Forgot />} />
+
+        {/* The HomePage from HEAD. If Home (from guest branch) is your main landing page,
+            you might remove HomePage or integrate its content into Home.
+            For now, let's assume 'Home' is the primary root. If HomePage is different and needed elsewhere,
+            consider giving it a distinct path, e.g., '/old-home'.
+            If it's just a simple counter, it's likely replaced by the Guest 'Home' page.
+            If `Home` (from guest branch) is the intended main page for `/`, then `HomePage` is probably redundant here.
+            You should decide if `HomePage` is still needed. For this example, let's assume `Home` (from guest branch)
+            is the primary root. So, we might remove `<Route path="/" element={<HomePage />} />`
+        */}
+        {/* <Route path="/" element={<HomePage />} />  <-- DECIDE: Is this needed if / is handled by <Home /> */}
+
       </Routes>
     </div>
   );
 }
 
+// --- Components from HEAD (if still needed) ---
+// Only keep HomePage if it serves a distinct purpose from the Guest's Home component.
+// If HomePage is just a simple counter or placeholder, you might remove it if Guest's Home is more developed.
 function HomePage() {
   const [count, setCount] = useState(0);
 
@@ -50,7 +95,7 @@ function HomePage() {
   );
 }
 
-// Placeholder components for pages you haven't created yet
+// Keep these placeholder components if they are genuinely intended for future development
 const AppointmentsPagePlaceholder = () => (
   <div className="p-6 bg-gray-50 min-h-screen">
     <div className="bg-white rounded-xl shadow-sm p-8 text-center">
