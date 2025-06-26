@@ -5,26 +5,31 @@ const AdminNavbar = ({ user }) => {
   const location = useLocation();
 
   const getPageTitle = (pathname) => {
-    // Extract the page from the pathname
     const page = pathname.split('/').pop();
     
     switch (page) {
       case "patients":
-        return "Patient Data Entry";
+        return "Manajemen Pasien";
       case "dashboard":
-        return "Hospital Dashboard";
+        return "Dasbor Rumah Sakit";
+      case "tickets":
+        return "Antrean Tiket";
+      case "departments-management":
+        return "Manajemen Departemen";
+      case "staff-management":
+        return "Manajemen Staf";
       case "appointments":
-        return "Appointments Management";
+        return "Manajemen Janji Temu";
       case "doctors":
-        return "Doctor Management";
+        return "Manajemen Dokter";
       case "reports":
-        return "Reports & Analytics";
+        return "Laporan & Analitik";
       case "settings":
-        return "Settings";
+        return "Pengaturan";
       case "admin":
-        return "Hospital Dashboard"; // For the index route
+        return "Dasbor Rumah Sakit";
       default:
-        return page ? page.charAt(0).toUpperCase() + page.slice(1) : "Dashboard";
+        return page ? page.charAt(0).toUpperCase() + page.slice(1).replace(/-/g, ' ') : "Dasbor Rumah Sakit";
     }
   };
 
@@ -40,44 +45,8 @@ const AdminNavbar = ({ user }) => {
       </div>
 
       <div className="flex items-center space-x-4">
-        {/* Search Input */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search"
-            className="px-3 py-2 border border-gray-300 rounded-md w-64 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <svg
-              className="w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-        </div>
 
-        {/* Filter Dropdowns */}
-        <select className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option>Assigned to</option>
-        </select>
-
-        <select className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option>Location</option>
-        </select>
-
-        <select className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option>By Date</option>
-        </select>
-
-        {/* User Profile */}
+        {/* User Profile - Tetap di sini */}
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
             {user.name

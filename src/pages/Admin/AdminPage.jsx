@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from '/src/supabaseClient'; // Adjust path if necessary
-import { format, differenceInYears, parseISO } from 'date-fns'; // For date formatting and age calculation
+import { supabase } from '../../supabaseClient'; // Sesuaikan path jika perlu
+import { format, differenceInYears, parseISO } from 'date-fns'; // Untuk format tanggal dan perhitungan usia
 
 const AdminPage = () => {
   const [patients, setPatients] = useState([]);
@@ -8,13 +8,11 @@ const AdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- THIS IS THE MISSING/INCORRECTLY PLACED FUNCTION ---
-  // You must define handlePatientSelect inside the component
+  // Fungsi handlePatientSelect berada di lokasi yang benar di sini.
   const handlePatientSelect = (patient) => {
-    console.log("Patient clicked:", patient); // Keep this for debugging
+    console.log("Pasien diklik:", patient); // Pesan debug
     setSelectedPatient(patient);
   };
-  // -----------------------------------------------------
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -35,52 +33,55 @@ const AdminPage = () => {
             special_needs,
             created_at
           `)
-          .order('full_name', { ascending: true }); // Order by name for easier Browse
+          .order('full_name', { ascending: true });
 
         if (error) {
           console.error("Error fetching patients:", error.message);
-          setError("Failed to load patients: " + error.message);
+          setError("Gagal memuat data pasien: " + error.message);
         } else {
           setPatients(data);
-          // Set the first patient as selected by default if data exists
           if (data.length > 0) {
             setSelectedPatient(data[0]);
           }
         }
       } catch (err) {
         console.error("Unexpected error fetching patients:", err.message);
-        setError("An unexpected error occurred while fetching patients.");
+        setError("Terjadi kesalahan tak terduga saat memuat data pasien.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchPatients();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
-  // Helper function to calculate age from date of birth
+  // Fungsi pembantu untuk menghitung usia dari tanggal lahir
   const calculateAge = (dob) => {
     if (!dob) return 'N/A';
     try {
       return differenceInYears(new Date(), parseISO(dob));
     } catch (e) {
-      console.error("Error calculating age:", e);
+      console.error("Error menghitung usia:", e);
       return 'N/A';
     }
   };
 
-  // Helper function to format date for display
+  // Fungsi pembantu untuk memformat tanggal untuk tampilan
   const formatDisplayDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return format(parseISO(dateString), 'MMM dd,PPPP'); // Changed to PPPP for full date format
+    // Menggunakan toLocaleDateString dengan 'id-ID' untuk format tanggal Indonesia
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
-
 
   if (loading) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen flex justify-center items-center">
         <span className="loading loading-spinner loading-lg text-blue-600"></span>
-        <p className="ml-2 text-lg text-gray-700">Loading patient data...</p>
+        <p className="ml-2 text-lg text-gray-700">Memuat data pasien...</p>
       </div>
     );
   }
@@ -99,29 +100,27 @@ const AdminPage = () => {
   if (patients.length === 0) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen flex justify-center items-center">
-        <p className="text-lg text-gray-700">No patients found in the database. Please add some via the Guest page!</p>
+        <p className="text-lg text-gray-700">Tidak ada pasien yang ditemukan di database. Harap tambahkan melalui halaman Tamu!</p>
       </div>
     );
   }
 
-  // Ensure currentPatient is always set after loading and if patients exist
   const displayPatient = selectedPatient || patients[0];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header with Patient ID */}
+      {/* Header dengan ID Pasien */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-lg flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Patient ID : {displayPatient.id}</h2>
-        {/* The "Back" button functionality is not implemented here as it depends on navigation */}
+        <h2 className="text-lg font-semibold">ID Pasien : {displayPatient.id}</h2>
         <button className="btn btn-sm bg-white/20 border-white/30 text-white hover:bg-white/30">
-          ← Back
+          ← Kembali
         </button>
       </div>
 
-      {/* Patient Info Section */}
+      {/* Bagian Info Pasien */}
       <div className="bg-white p-6 shadow-sm">
         <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-8">
-          {/* Profile Picture and Name */}
+          {/* Gambar Profil dan Nama */}
           <div className="text-center w-full md:w-auto">
             <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
               <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
@@ -134,19 +133,19 @@ const AdminPage = () => {
             <p className="text-sm text-gray-600">MRN: {displayPatient.medical_record_number || 'N/A'}</p>
           </div>
 
-          {/* Details Grid (using your actual patient data) */}
+          {/* Grid Detail (menggunakan data pasien Anda yang sebenarnya) */}
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-4 w-full">
             <div>
-              <span className="font-semibold text-gray-700">Gender:</span>
+              <span className="font-semibold text-gray-700">Jenis Kelamin:</span>
               <span className="ml-2 text-gray-600 capitalize">{displayPatient.gender || 'N/A'}</span>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">Age:</span>
-              <span className="ml-2 text-gray-600">{calculateAge(displayPatient.date_of_birth)} years</span>
+              <span className="font-semibold text-gray-700">Usia:</span>
+              <span className="ml-2 text-gray-600">{calculateAge(displayPatient.date_of_birth)} tahun</span>
             </div>
             
             <div>
-              <span className="font-semibold text-gray-700">Phone:</span>
+              <span className="font-semibold text-gray-700">Telepon:</span>
               <span className="ml-2 text-gray-600">{displayPatient.phone || 'N/A'}</span>
             </div>
             <div>
@@ -155,45 +154,45 @@ const AdminPage = () => {
             </div>
             
             <div>
-              <span className="font-semibold text-gray-700">National ID:</span>
+              <span className="font-semibold text-gray-700">ID Nasional:</span>
               <span className="ml-2 text-gray-600">{displayPatient.national_id_number || 'N/A'}</span>
             </div>
             <div>
-              <span className="font-semibold text-gray-700">Special Needs:</span>
+              <span className="font-semibold text-gray-700">Kebutuhan Khusus:</span>
               <span className="ml-2 text-gray-600">
                 {displayPatient.special_needs ? (
-                  <span className="badge badge-warning">Yes</span>
+                  <span className="badge badge-warning">Ya</span>
                 ) : (
-                  <span className="badge badge-info badge-outline">No</span>
+                  <span className="badge badge-info badge-outline">Tidak</span>
                 )}
               </span>
             </div>
-            {/* Added for clarity */}
+            {/* Ditambahkan untuk kejelasan */}
             <div>
-              <span className="font-semibold text-gray-700">Registered On:</span>
+              <span className="font-semibold text-gray-700">Terdaftar Pada:</span>
               <span className="ml-2 text-gray-600">{formatDisplayDate(displayPatient.created_at)}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="divider text-gray-500 text-lg my-6">All Registered Patients</div>
+      <div className="divider text-gray-500 text-lg my-6">Semua Pasien Terdaftar</div>
 
-      {/* Data Table */}
+      {/* Tabel Data */}
       <div className="bg-white shadow-sm rounded-b-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="table w-full">
             <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
               <tr>
-                <th className="text-left font-semibold py-3 px-4">Name</th>
-                <th className="text-left font-semibold py-3 px-4">Gender</th>
-                <th className="text-left font-semibold py-3 px-4">Age</th>
-                <th className="text-left font-semibold py-3 px-4">Phone</th>
+                <th className="text-left font-semibold py-3 px-4">Nama</th>
+                <th className="text-left font-semibold py-3 px-4">Jenis Kelamin</th>
+                <th className="text-left font-semibold py-3 px-4">Usia</th>
+                <th className="text-left font-semibold py-3 px-4">Telepon</th>
                 <th className="text-left font-semibold py-3 px-4">Email</th>
-                <th className="text-left font-semibold py-3 px-4">National ID</th>
+                <th className="text-left font-semibold py-3 px-4">ID Nasional</th>
                 <th className="text-left font-semibold py-3 px-4">MRN</th>
-                <th className="text-left font-semibold py-3 px-4">Special Needs</th>
-                <th className="text-left font-semibold py-3 px-4">Registered On</th>
+                <th className="text-left font-semibold py-3 px-4">Kebutuhan Khusus</th>
+                <th className="text-left font-semibold py-3 px-4">Terdaftar Pada</th>
               </tr>
             </thead>
             <tbody>
@@ -201,7 +200,7 @@ const AdminPage = () => {
                 <tr 
                   key={patient.id} 
                   className={`hover:bg-blue-50 cursor-pointer transition-colors ${
-                    selectedPatient && selectedPatient.id === patient.id ? 'bg-blue-100' : '' // Highlight selected row
+                    selectedPatient && selectedPatient.id === patient.id ? 'bg-blue-100' : ''
                   }`}
                   onClick={() => handlePatientSelect(patient)}
                 >
@@ -214,9 +213,9 @@ const AdminPage = () => {
                   <td className="text-gray-600 py-2 px-4">{patient.medical_record_number || 'N/A'}</td>
                   <td className="py-2 px-4">
                     {patient.special_needs ? (
-                      <span className="badge badge-warning">Yes</span>
+                      <span className="badge badge-warning">Ya</span>
                     ) : (
-                      <span className="badge badge-info badge-outline">No</span>
+                      <span className="badge badge-info badge-outline">Tidak</span>
                     )}
                   </td>
                   <td className="text-gray-600 py-2 px-4">{formatDisplayDate(patient.created_at)}</td>
@@ -227,13 +226,9 @@ const AdminPage = () => {
         </div>
       </div>
 
-      {/* The "Submit" button here doesn't have a clear purpose in this context,
-          as this page is for viewing/selecting patients. If it's for something
-          like assigning a patient to a doctor or starting a process, that logic
-          would need to be added. For now, it's just a placeholder. */}
       <div className="flex justify-end mt-6">
         <button className="btn btn-primary btn-wide">
-          Submit (Action needed)
+          Kirim (Tindakan diperlukan)
         </button>
       </div>
     </div>

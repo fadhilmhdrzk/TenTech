@@ -1,54 +1,56 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '/src/supabaseClient'; // Make sure this path is correct
-import { format } from 'date-fns'; // For formatting the assigned date
+import { supabase } from "../../supabaseClient"; // Sesuaikan path jika perlu
+import { format } from 'date-fns'; // Untuk format tanggal
 
 export default function Guest() {
-  // Patient-related states
-  const [fullName, setFullName] = useState(''); // Changed from 'name' to 'fullName'
+  // State terkait Pasien
+  const [fullName, setFullName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [nationalIdNumber, setNationalIdNumber] = useState(''); // e.g., KTP/NIK
-  const [medicalRecordNumber, setMedicalRecordNumber] = useState(''); // Existing MRN if applicable
+  const [nationalIdNumber, setNationalIdNumber] = useState('');
+  const [medicalRecordNumber, setMedicalRecordNumber] = useState('');
   const [specialNeeds, setSpecialNeeds] = useState(false);
-  const [reasonForVisit, setReasonForVisit] = useState(''); // New ticket field
+  const [reasonForVisit, setReasonForVisit] = useState('');
 
-  // Ticket-related states
+  // State terkait Tiket
   const [departments, setDepartments] = useState([]);
-  const [selectedDeptId, setSelectedDeptId] = useState(''); // Changed from 'selectedDept' for clarity
-  const [assignedDate, setAssignedDate] = useState(format(new Date(), 'yyyy-MM-dd')); // Defaults to today
-  const [priority, setPriority] = useState('normal'); // Defaults to 'normal'
+  const [selectedDeptId, setSelectedDeptId] = useState('');
+  const [assignedDate, setAssignedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [priority, setPriority] = useState('normal');
 
-  // UI states
+  // State UI
   const [ticketNumber, setTicketNumber] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submissionError, setSubmissionError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // --- Fetch department list on load ---
+  // --- Ambil daftar departemen saat dimuat ---
   useEffect(() => {
     const fetchDepartments = async () => {
       const { data, error } = await supabase
         .from('departments')
-        .select('id, name, description') // Also fetch description
-        .eq('is_active', true) // Only fetch active departments
-        .order('name', { ascending: true }); // Order departments alphabetically
+        .select('id, name, description')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
 
       if (error) {
         console.error('Error fetching departments:', error.message);
-        setSubmissionError('Failed to load departments. Please try again.');
+        setSubmissionError('Gagal memuat daftar departemen. Harap coba lagi.'); // <<< DIUBAH
       } else {
         setDepartments(data);
         if (data.length > 0) {
-          setSelectedDeptId(data[0].id); // Pre-select the first department
+          const generalMedicine = data.find(dept => dept.name === 'General Medicine');
+          setSelectedDeptId(generalMedicine ? generalMedicine.id : data[0].id);
         }
       }
     };
     fetchDepartments();
   }, []);
 
-  // --- Handle form submission ---
+
+  // --- Tangani pengiriman formulir ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -56,73 +58,103 @@ export default function Guest() {
     setShowSuccess(false);
 
     try {
-      let patientId;
-      // 1. Check if patient exists by national_id_number or medical_record_number
-      // (This logic can be more sophisticated, e.g., prompt user if multiple matches)
-      let { data: existingPatients, error: patientSearchError } = await supabase
-        .from('patients')
-        .select('id')
-        .or(`national_id_number.eq.${nationalIdNumber},medical_record_number.eq.${medicalRecordNumber}`);
+      // --- Siapkan data untuk dimasukkan, konversi string kosong menjadi null jika sesuai ---
+      const trimmedFullName = fullName.trim();
+      const trimmedPhone = phone.trim();
+      const trimmedEmail = email.trim();
+      const trimmedNationalIdNumber = nationalIdNumber.trim();
+      const trimmedMedicalRecordNumber = medicalRecordNumber.trim();
+      const trimmedReasonForVisit = reasonForVisit.trim();
 
-      if (patientSearchError) throw patientSearchError;
+      const emailToInsert = trimmedEmail === '' ? null : trimmedEmail;
+      const medicalRecordNumberToInsert = trimmedMedicalRecordNumber === '' ? null : trimmedMedicalRecordNumber;
+      const reasonForVisitToInsert = trimmedReasonForVisit === '' ? null : trimmedReasonForVisit;
+
+      let patientId;
+      let existingPatients = [];
+      if (trimmedNationalIdNumber) {
+          const { data, error } = await supabase
+              .from('patients')
+              .select('id')
+              .eq('national_id_number', trimmedNationalIdNumber);
+          if (error) throw error;
+          existingPatients = data;
+      } else if (trimmedMedicalRecordNumber) {
+          const { data, error } = await supabase
+              .from('patients')
+              .select('id')
+              .eq('medical_record_number', trimmedMedicalRecordNumber);
+          if (error) throw error;
+          existingPatients = data;
+      }
 
       if (existingPatients && existingPatients.length > 0) {
-        // Patient exists, use their ID
         patientId = existingPatients[0].id;
-        // Optionally, update existing patient data here if allowed
         const { error: updateError } = await supabase
             .from('patients')
             .update({
-                full_name: fullName,
+                full_name: trimmedFullName,
                 date_of_birth: dateOfBirth,
                 gender: gender,
-                phone: phone,
-                email: email,
+                phone: trimmedPhone,
+                email: emailToInsert,
                 special_needs: specialNeeds
-                // national_id_number and medical_record_number should not be updated if they are used for lookup
             })
             .eq('id', patientId);
 
         if (updateError) {
-            console.warn("Warning: Could not update existing patient data.", updateError.message);
-            // Don't throw, just log a warning. The core action is creating a ticket.
+            console.warn("Peringatan: Tidak dapat memperbarui data pasien yang ada.", updateError.message); // <<< DIUBAH
         }
 
       } else {
-        // Patient does not exist, insert new patient
         const { data: newPatientData, error: patientInsertError } = await supabase
           .from('patients')
           .insert({
-            full_name: fullName,
+            full_name: trimmedFullName,
             date_of_birth: dateOfBirth,
             gender: gender,
-            phone: phone,
-            email: email,
-            national_id_number: nationalIdNumber,
-            medical_record_number: medicalRecordNumber,
+            phone: trimmedPhone,
+            email: emailToInsert,
+            national_id_number: trimmedNationalIdNumber,
+            medical_record_number: medicalRecordNumberToInsert,
             special_needs: specialNeeds,
           })
           .select('id')
           .single();
 
-        if (patientInsertError) throw patientInsertError;
+        if (patientInsertError) {
+            if (patientInsertError.code === '23505') {
+                if (patientInsertError.message.includes('email')) {
+                    throw new Error('Alamat email sudah terdaftar. Harap gunakan yang lain atau biarkan kosong.'); // <<< DIUBAH
+                }
+                if (patientInsertError.message.includes('national_id_number')) {
+                    throw new Error('Nomor ID Nasional (KTP/NIK) sudah terdaftar. Harap verifikasi detail Anda.'); // <<< DIUBAH
+                }
+                if (patientInsertError.message.includes('medical_record_number')) {
+                    throw new Error('Nomor Rekam Medis sudah terdaftar. Harap verifikasi detail Anda.'); // <<< DIUBAH
+                }
+                if (patientInsertError.message.includes('phone')) {
+                    throw new Error('Nomor telepon sudah terdaftar. Harap gunakan yang lain atau masuk jika Anda memiliki akun yang sudah ada.'); // <<< DIUBAH
+                }
+            }
+            throw patientInsertError;
+        }
         patientId = newPatientData.id;
       }
 
-      // 2. Generate ticket number for the assigned date and department
-      // This is a more robust way to generate a unique ticket number per day per department
-      const { count: ticketsTodayInDept } = await supabase
+      const { count: ticketsTodayInDept, error: countError } = await supabase
         .from('tickets')
         .select('id', { count: 'exact', head: true })
         .eq('department_id', selectedDeptId)
         .eq('assigned_date', assignedDate);
 
-      // Get department prefix (e.g., first letter of department name)
+      if (countError) throw countError;
+
+
       const selectedDepartment = departments.find(d => d.id === selectedDeptId);
       const deptPrefix = selectedDepartment ? selectedDepartment.name.charAt(0).toUpperCase() : 'Z';
-      const ticketNum = `${deptPrefix}${String(ticketsTodayInDept + 1).padStart(3, '0')}`; // e.g., A001, P005
+      const ticketNum = `${deptPrefix}${String(ticketsTodayInDept + 1).padStart(3, '0')}`;
 
-      // 3. Insert ticket
       const { data: ticketData, error: ticketErr } = await supabase
         .from('tickets')
         .insert({
@@ -130,29 +162,28 @@ export default function Guest() {
           department_id: selectedDeptId,
           assigned_date: assignedDate,
           priority: priority,
-          reason_for_visit: reasonForVisit,
-          queue_number: ticketNum, // Use the generated ticket number
-          status: 'pending' // Initial status is 'pending' for guest submissions
+          reason_for_visit: reasonForVisitToInsert,
+          queue_number: ticketNum,
+          status: 'pending'
         })
-        .select('queue_number') // Select only the queue_number for display
+        .select('queue_number')
         .single();
 
       if (ticketErr) throw ticketErr;
 
       setTicketNumber(ticketData.queue_number);
-      setShowSuccess(true); // Indicate success
-      // Optionally reset form fields here
+      setShowSuccess(true);
       resetForm();
 
     } catch (err) {
       console.error('Error creating ticket:', err.message);
-      setSubmissionError(`Failed to submit ticket: ${err.message}. Please check your input.`);
+      setSubmissionError(`Gagal mengirim tiket: ${err.message}. Harap periksa input Anda.`); // <<< DIUBAH
     } finally {
       setLoading(false);
     }
   };
 
-  // Function to reset form fields after submission
+  // Fungsi untuk mereset kolom formulir setelah pengiriman
   const resetForm = () => {
     setFullName('');
     setDateOfBirth('');
@@ -163,16 +194,14 @@ export default function Guest() {
     setMedicalRecordNumber('');
     setSpecialNeeds(false);
     setReasonForVisit('');
-    setAssignedDate(format(new Date(), 'yyyy-MM-dd')); // Reset to today
+    setAssignedDate(format(new Date(), 'yyyy-MM-dd'));
     setPriority('normal');
-    // Keep selectedDeptId if it's auto-selected, or reset to ''
-    // setSelectedDeptId('');
   };
 
   return (
     <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-lg my-8">
-      <h1 className="text-3xl font-extrabold text-center text-blue-700 mb-6">Get Your Hospital Ticket</h1>
-      <p className="text-center text-gray-600 mb-6">Please fill in your details to get a queue number for your visit.</p>
+      <h1 className="text-3xl font-extrabold text-center text-blue-700 mb-6">Ambil Tiket Rumah Sakit Anda</h1> {/* <<< DIUBAH */}
+      <p className="text-center text-gray-600 mb-6">Harap isi detail Anda untuk mendapatkan nomor antrean kunjungan Anda.</p> {/* <<< DIUBAH */}
 
       {submissionError && (
         <div role="alert" className="alert alert-error mb-4">
@@ -184,29 +213,30 @@ export default function Guest() {
       {showSuccess && ticketNumber && (
         <div role="alert" className="alert alert-success mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span>Your ticket has been successfully created!</span>
+          <span>Tiket Anda berhasil dibuat! Nomor Anda adalah: <strong>{ticketNumber}</strong></span> {/* <<< DIUBAH */}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* --- Patient Information --- */}
+        {/* --- Informasi Pasien --- */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Full Name *</span>
+            <span className="label-text">Nama Lengkap *</span> {/* <<< DIUBAH */}
           </label>
           <input
             className="input input-bordered w-full"
             type="text"
-            placeholder="e.g., John Doe"
+            placeholder="misal: John Doe" // <<< DIUBAH
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
+            disabled={loading}
           />
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Date of Birth *</span>
+            <span className="label-text">Tanggal Lahir *</span> {/* <<< DIUBAH */}
           </label>
           <input
             className="input input-bordered w-full"
@@ -214,80 +244,86 @@ export default function Guest() {
             value={dateOfBirth}
             onChange={(e) => setDateOfBirth(e.target.value)}
             required
+            disabled={loading}
           />
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Gender *</span>
+            <span className="label-text">Jenis Kelamin *</span> {/* <<< DIUBAH */}
           </label>
           <select
             className="select select-bordered w-full"
             value={gender}
             onChange={(e) => setGender(e.target.value)}
             required
+            disabled={loading}
           >
-            <option value="">Select Gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-            <option value="prefer_not_say">Prefer not to say</option>
+            <option value="">Pilih Jenis Kelamin</option> {/* <<< DIUBAH */}
+            <option value="male">Laki-laki</option> {/* <<< DIUBAH */}
+            <option value="female">Perempuan</option> {/* <<< DIUBAH */}
+            <option value="other">Lainnya</option> {/* <<< DIUBAH */}
+            <option value="prefer_not_say">Tidak Ingin Menyebutkan</option> {/* <<< DIUBAH */}
           </select>
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Phone Number *</span>
+            <span className="label-text">Nomor Telepon *</span> {/* <<< DIUBAH */}
           </label>
           <input
             className="input input-bordered w-full"
             type="tel"
-            placeholder="e.g., +628123456789"
+            placeholder="misal: +628123456789" // <<< DIUBAH
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
+            disabled={loading}
           />
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Email (Optional)</span>
+            <span className="label-text">Email (Opsional)</span> {/* <<< DIUBAH */}
           </label>
           <input
             className="input input-bordered w-full"
             type="email"
-            placeholder="e.g., your.email@example.com"
+            placeholder="misal: email.anda@contoh.com" // <<< DIUBAH
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
           />
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">National ID Number (KTP/NIK) *</span>
-            <span className="label-text-alt text-gray-500">For identification</span>
+            <span className="label-text">Nomor ID Nasional (KTP/NIK) *</span> {/* <<< DIUBAH */}
+            <span className="label-text-alt text-gray-500">Untuk identifikasi</span> {/* <<< DIUBAH */}
           </label>
           <input
             className="input input-bordered w-full"
             type="text"
-            placeholder="e.g., 1234567890123456"
+            placeholder="misal: 1234567890123456" // <<< DIUBAH
             value={nationalIdNumber}
             onChange={(e) => setNationalIdNumber(e.target.value)}
             required
+            disabled={loading}
           />
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Medical Record Number (MRN) (Optional)</span>
-            <span className="label-text-alt text-gray-500">If you are an existing patient</span>
+            <span className="label-text">Nomor Rekam Medis (MRN) (Opsional)</span> {/* <<< DIUBAH */}
+            <span className="label-text-alt text-gray-500">Jika Anda pasien yang sudah ada</span> {/* <<< DIUBAH */}
           </label>
           <input
             className="input input-bordered w-full"
             type="text"
-            placeholder="e.g., H0012345"
+            placeholder="misal: H0012345" // <<< DIUBAH
             value={medicalRecordNumber}
             onChange={(e) => setMedicalRecordNumber(e.target.value)}
+            disabled={loading}
           />
         </div>
 
@@ -297,40 +333,43 @@ export default function Guest() {
             className="checkbox checkbox-primary"
             checked={specialNeeds}
             onChange={(e) => setSpecialNeeds(e.target.checked)}
+            disabled={loading}
           />
           <label className="label cursor-pointer">
-            <span className="label-text">I have special needs (e.g., wheelchair, interpreter)</span>
+            <span className="label-text">Saya memiliki kebutuhan khusus (misal: kursi roda, penerjemah)</span> {/* <<< DIUBAH */}
           </label>
         </div>
 
         <div className="divider"></div>
 
-        {/* --- Visit Details --- */}
+        {/* --- Detail Kunjungan --- */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Reason for Visit *</span>
-            <span className="label-text-alt text-gray-500">Briefly describe your need</span>
+            <span className="label-text">Alasan Kunjungan *</span> {/* <<< DIUBAH */}
+            <span className="label-text-alt text-gray-500">Jelaskan singkat kebutuhan Anda</span> {/* <<< DIUBAH */}
           </label>
           <textarea
             className="textarea textarea-bordered h-24 w-full"
-            placeholder="e.g., Flu symptoms, follow-up for check-up, administrative inquiry"
+            placeholder="misal: Gejala flu, kontrol pasca pemeriksaan, pertanyaan administrasi" // <<< DIUBAH
             value={reasonForVisit}
             onChange={(e) => setReasonForVisit(e.target.value)}
             required
+            disabled={loading}
           ></textarea>
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Select Department *</span>
+            <span className="label-text">Pilih Departemen *</span> {/* <<< DIUBAH */}
           </label>
           <select
             className="select select-bordered w-full"
             value={selectedDeptId}
             onChange={(e) => setSelectedDeptId(e.target.value)}
             required
+            disabled={loading || departments.length === 0}
           >
-            <option value="">Select Department</option>
+            <option value="">Pilih Departemen</option> {/* <<< DIUBAH */}
             {departments.map((dept) => (
               <option key={dept.id} value={dept.id}>
                 {dept.name} {dept.description ? `(${dept.description})` : ''}
@@ -341,32 +380,34 @@ export default function Guest() {
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Preferred Date for Visit *</span>
-            <span className="label-text-alt text-gray-500">Today's date is pre-selected</span>
+            <span className="label-text">Tanggal Kunjungan Pilihan *</span> {/* <<< DIUBAH */}
+            <span className="label-text-alt text-gray-500">Tanggal hari ini sudah terpilih secara otomatis</span> {/* <<< DIUBAH */}
           </label>
           <input
             className="input input-bordered w-full"
             type="date"
             value={assignedDate}
-            min={format(new Date(), 'yyyy-MM-dd')} // Prevents selecting past dates
+            min={format(new Date(), 'yyyy-MM-dd')}
             onChange={(e) => setAssignedDate(e.target.value)}
             required
+            disabled={loading}
           />
         </div>
 
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Priority Level *</span>
+            <span className="label-text">Tingkat Prioritas *</span> {/* <<< DIUBAH */}
           </label>
           <select
             className="select select-bordered w-full"
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
             required
+            disabled={loading}
           >
-            <option value="normal">Normal</option>
-            <option value="high">High</option>
-            <option value="emergency">Emergency (Urgent Case)</option>
+            <option value="normal">Normal</option> {/* <<< DIUBAH */}
+            <option value="high">Tinggi</option> {/* <<< DIUBAH */}
+            <option value="emergency">Darurat (Kasus Mendesak)</option> {/* <<< DIUBAH */}
           </select>
         </div>
 
@@ -375,15 +416,15 @@ export default function Guest() {
           type="submit"
           disabled={loading}
         >
-          {loading ? 'Generating Ticket...' : 'Get My Ticket'}
+          {loading ? 'Membuat Tiket...' : 'Ambil Tiket Saya'} {/* <<< DIUBAH */}
         </button>
       </form>
 
       {ticketNumber && showSuccess && (
         <div className="mt-8 p-6 bg-green-50 text-green-800 rounded-lg shadow-inner text-center">
-          <p className="font-bold text-2xl mb-2">Thank you! Your Ticket Number is:</p>
+          <p className="font-bold text-2xl mb-2">Terima kasih! Nomor Tiket Anda adalah:</p> {/* <<< DIUBAH */}
           <p className="text-5xl font-extrabold text-blue-700">{ticketNumber}</p>
-          <p className="mt-4 text-gray-700">Please wait for your number to be called by the staff.</p>
+          <p className="mt-4 text-gray-700">Harap tunggu nomor Anda dipanggil oleh staf.</p> {/* <<< DIUBAH */}
         </div>
       )}
     </div>

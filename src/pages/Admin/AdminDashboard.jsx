@@ -1,74 +1,73 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from '../../supabaseClient'; // Adjust path if needed
-import { format, parseISO, differenceInMinutes, startOfDay } from 'date-fns'; // For date handling
+import { supabase } from '../../supabaseClient';
+import { format, parseISO, differenceInMinutes, startOfDay, addDays } from 'date-fns'; // <<< TAMBAHKAN startOfDay, addDays
 
 const AdminDashboard = () => {
-  // State for fetched data
   const [stats, setStats] = useState([]);
   const [recentPatientActivity, setRecentPatientActivity] = useState([]);
   const [todaysAppointments, setTodaysAppointments] = useState([]);
   const [departmentCapacities, setDepartmentCapacities] = useState([]);
 
-  // Loading and Error states
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [loadingCapacities, setLoadingCapacities] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- Fetch Dashboard Stats ---
+  // --- Ambil Statistik Dasbor ---
   useEffect(() => {
     const fetchStats = async () => {
       setLoadingStats(true);
       try {
-        // Total Patients
         const { count: totalPatients } = await supabase
           .from('patients')
           .select('id', { count: 'exact', head: true });
 
-        // Today's Check-ins (could be 'checked_in' status today)
         const today = format(new Date(), 'yyyy-MM-dd');
+
         const { count: checkedInToday } = await supabase
           .from('tickets')
           .select('id', { count: 'exact', head: true })
           .eq('assigned_date', today)
-          .in('status', ['checked_in', 'called', 'completed']); // Patients who have arrived or finished today
+          .in('status', ['checked_in', 'called', 'completed']);
 
-        // Critical Patients (using 'emergency' priority in tickets)
         const { count: criticalPatients } = await supabase
           .from('tickets')
           .select('id', { count: 'exact', head: true })
           .eq('priority', 'emergency')
-          .not('status', 'in', '("completed", "cancelled", "no_show")'); // Only active emergency cases
+          .not('status', 'in', '("completed", "cancelled", "no_show")');
 
-        // Completed Visits Today
-        const { count: completedToday } = await supabase
+        // --- PERBAIKAN KUERI UNTUK "Kunjungan Selesai Hari Ini" ---
+        // Hitung tiket yang 'completed_at' berada di antara awal hari ini dan awal hari besok
+        const startOfToday = format(startOfDay(new Date()), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"); // Format ISO dengan Z atau offset
+        const startOfTomorrow = format(addDays(startOfDay(new Date()), 1), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"); // Format ISO dengan Z atau offset
+
+        const { count: completedToday, error: completedError } = await supabase
           .from('tickets')
           .select('id', { count: 'exact', head: true })
-          .eq('completed_at', today); // Assuming completed_at stores just date or can be filtered by date
+          .gte('completed_at', startOfToday) // Greater than or equal to start of today
+          .lt('completed_at', startOfTomorrow); // Less than start of tomorrow
 
-        // NOTE: The 'change' percentages (e.g., +12% from last week) require historical data.
-        // This is more complex and would need queries for past periods.
-        // For now, these will be static or removed, or you can calculate based on simple daily change.
+        if (completedError) throw completedError; // Tangani error jika ada
 
         setStats([
-          { title: "Total Registered Patients", value: totalPatients ? totalPatients.toLocaleString() : '0', icon: "👥", color: "bg-blue-500" },
-          { title: "Checked-in Today", value: checkedInToday ? checkedInToday.toLocaleString() : '0', icon: "🚶", color: "bg-green-500" },
-          { title: "Active Emergency Tickets", value: criticalPatients ? criticalPatients.toLocaleString() : '0', icon: "🚨", color: "bg-red-500" },
-          { title: "Visits Completed Today", value: completedToday ? completedToday.toLocaleString() : '0', icon: "✅", color: "bg-purple-500" },
+          { title: "Total Pasien Terdaftar", value: totalPatients ? totalPatients.toLocaleString() : '0', icon: "👥", color: "bg-blue-500" },
+          { title: "Check-in Hari Ini", value: checkedInToday ? checkedInToday.toLocaleString() : '0', icon: "🚶", color: "bg-green-500" },
+          { title: "Tiket Darurat Aktif", value: criticalPatients ? criticalPatients.toLocaleString() : '0', icon: "🚨", color: "bg-red-500" },
+          { title: "Kunjungan Selesai Hari Ini", value: completedToday ? completedToday.toLocaleString() : '0', icon: "✅", color: "bg-purple-500" },
         ]);
 
       } catch (err) {
         console.error("Error fetching stats:", err.message);
-        setError("Failed to load dashboard statistics.");
+        setError("Gagal memuat statistik dasbor.");
       } finally {
         setLoadingStats(false);
       }
     };
     fetchStats();
-  }, []); // Run once on mount
+  }, []);
 
-  // --- Fetch Recent Patient Activity (last 10 completed/cancelled/no_show tickets) ---
+  // --- Ambil Aktivitas Pasien Terbaru ---
   useEffect(() => {
     const fetchRecentActivity = async () => {
       setLoadingRecent(true);
@@ -83,9 +82,9 @@ const AdminDashboard = () => {
             patient:patient_id ( full_name ),
             department:department_id ( name )
           `)
-          .in('status', ['completed', 'cancelled', 'no_show']) // Look at recently finalized tickets
-          .order('created_at', { ascending: false }) // Most recent first
-          .limit(5); // Show top 5 recent activities
+          .in('status', ['completed', 'cancelled', 'no_show'])
+          .order('created_at', { ascending: false })
+          .limit(5);
 
         if (error) {
           console.error("Error fetching recent activity:", error.message);
@@ -95,9 +94,7 @@ const AdminDashboard = () => {
             name: ticket.patient?.full_name || 'N/A',
             department: ticket.department?.name || 'N/A',
             status: ticket.status,
-            time: format(parseISO(ticket.created_at), 'p'), // Just the time, e.g., 9:30 AM
-            // If you want "X hours ago", you'd calculate differenceInMinutes / 60
-            // from new Date() to parseISO(ticket.created_at)
+            time: format(parseISO(ticket.created_at), 'HH:mm'), // Menggunakan HH:mm untuk WIB
           })));
         }
       } catch (err) {
@@ -109,7 +106,7 @@ const AdminDashboard = () => {
     fetchRecentActivity();
   }, []);
 
-  // --- Fetch Today's Appointments (Confirmed tickets for today) ---
+  // --- Ambil Janji Temu Hari Ini ---
   useEffect(() => {
     const fetchTodaysAppointments = async () => {
       setLoadingAppointments(true);
@@ -124,18 +121,17 @@ const AdminDashboard = () => {
             department:department_id ( name )
           `)
           .eq('assigned_date', today)
-          .eq('status', 'confirmed') // Only confirmed appointments
-          .order('assigned_time', { ascending: true }) // Order by time
-          .limit(5); // Limit to show a few upcoming
+          .eq('status', 'confirmed')
+          .order('assigned_time', { ascending: true })
+          .limit(5);
 
         if (error) {
           console.error("Error fetching appointments:", error.message);
         } else {
           setTodaysAppointments(data.map(ticket => ({
-            time: ticket.assigned_time ? format(new Date(`2000-01-01T${ticket.assigned_time}`), 'hh:mm a') : 'N/A',
+            time: ticket.assigned_time ? format(new Date(`2000-01-01T${ticket.assigned_time}`), 'HH:mm') : 'N/A',
             patient: ticket.patient?.full_name || 'N/A',
-            // Doctor is not directly in tickets, this would require staff assignments
-            doctor: 'TBD', // Placeholder, needs actual doctor assignment
+            doctor: 'TBD',
             department: ticket.department?.name || 'N/A',
           })));
         }
@@ -148,20 +144,17 @@ const AdminDashboard = () => {
     fetchTodaysAppointments();
   }, []);
 
-  // --- Fetch Department Capacity (Active tickets vs. max_capacity) ---
+  // --- Ambil Kapasitas Departemen ---
   useEffect(() => {
     const fetchDepartmentCapacities = async () => {
       setLoadingCapacities(true);
       try {
-        // Fetch all active departments
         const { data: departmentsData, error: deptError } = await supabase
           .from('departments')
           .select('id, name, max_capacity');
 
         if (deptError) throw deptError;
 
-        // Fetch counts of currently active tickets for each department
-        // Active means not completed, cancelled, or no_show
         const { data: activeTicketsData, error: ticketsError } = await supabase
           .from('tickets')
           .select('department_id', { count: 'exact' })
@@ -169,7 +162,6 @@ const AdminDashboard = () => {
 
         if (ticketsError) throw ticketsError;
 
-        // Group active tickets by department_id
         const activeTicketsByDept = activeTicketsData.reduce((acc, ticket) => {
           acc[ticket.department_id] = (acc[ticket.department_id] || 0) + 1;
           return acc;
@@ -177,7 +169,7 @@ const AdminDashboard = () => {
 
         const capacities = departmentsData.map(dept => {
           const patientsInQueue = activeTicketsByDept[dept.id] || 0;
-          const capacity = dept.max_capacity || 1; // Prevent division by zero
+          const capacity = dept.max_capacity || 1;
           const percentage = capacity > 0 ? Math.round((patientsInQueue / capacity) * 100) : 0;
           return {
             name: dept.name,
@@ -185,7 +177,7 @@ const AdminDashboard = () => {
             capacity: dept.max_capacity,
             percentage: percentage,
           };
-        }).sort((a, b) => b.percentage - a.percentage); // Show most utilized first
+        }).sort((a, b) => b.percentage - a.percentage);
 
         setDepartmentCapacities(capacities);
 
@@ -198,21 +190,20 @@ const AdminDashboard = () => {
     fetchDepartmentCapacities();
   }, []);
 
-  // Consolidate loading states for overall dashboard loading
   const overallLoading = loadingStats || loadingRecent || loadingAppointments || loadingCapacities;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Hospital Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here's what's happening at your hospital today. (As of {format(new Date(), 'MMM dd, yyyy HH:mm')})</p>
+        <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Dasbor Rumah Sakit</h1>
+        <p className="text-gray-600">Selamat datang kembali! Ini adalah yang terjadi di rumah sakit Anda hari ini. (Per {format(new Date(), 'MMM dd,PPPP HH:mm')})</p>
       </div>
 
       {overallLoading && (
         <div className="text-center py-10">
           <span className="loading loading-spinner loading-lg text-blue-600"></span>
-          <p className="mt-2 text-lg text-gray-700">Loading dashboard data...</p>
+          <p className="mt-2 text-lg text-gray-700">Memuat data dasbor...</p>
         </div>
       )}
 
@@ -225,7 +216,7 @@ const AdminDashboard = () => {
 
       {!overallLoading && (
         <>
-          {/* Stats Cards */}
+          {/* Kartu Statistik */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {stats.map((stat, index) => (
               <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -233,10 +224,6 @@ const AdminDashboard = () => {
                   <div>
                     <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
                     <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-                    {/* Change is static here as it requires historical data */}
-                    {/* <p className={`text-sm ${stat.change && stat.change.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                      {stat.change || 'N/A'} from last week
-                    </p> */}
                   </div>
                   <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center text-white text-xl`}>
                     {stat.icon}
@@ -247,14 +234,14 @@ const AdminDashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Recent Patients */}
+            {/* Pasien Terbaru */}
             <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
               <div className="p-6 border-b border-gray-100">
-                <h2 className="text-xl font-semibold text-gray-800">Recent Patient Activity</h2>
+                <h2 className="text-xl font-semibold text-gray-800">Aktivitas Pasien Terbaru</h2>
               </div>
               <div className="p-6">
                 {recentPatientActivity.length === 0 ? (
-                  <p className="text-gray-500 text-center">No recent patient activity.</p>
+                  <p className="text-gray-500 text-center">Tidak ada aktivitas pasien terbaru.</p>
                 ) : (
                   <div className="space-y-4">
                     {recentPatientActivity.map((activity) => (
@@ -275,7 +262,10 @@ const AdminDashboard = () => {
                             activity.status === 'no_show' ? 'bg-orange-100 text-orange-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
-                            {activity.status}
+                            {activity.status === 'completed' ? 'Selesai' :
+                             activity.status === 'cancelled' ? 'Dibatalkan' :
+                             activity.status === 'no_show' ? 'Tidak Hadir' :
+                             activity.status}
                           </span>
                           <p className="text-sm text-gray-500 mt-1">{activity.time}</p>
                         </div>
@@ -286,14 +276,14 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Upcoming Appointments */}
+            {/* Janji Temu Mendatang */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100">
               <div className="p-6 border-b border-gray-100">
-                <h2 className="text-xl font-semibold text-gray-800">Today's Confirmed Appointments</h2>
+                <h2 className="text-xl font-semibold text-gray-800">Janji Temu Terkonfirmasi Hari Ini</h2>
               </div>
               <div className="p-6">
                 {todaysAppointments.length === 0 ? (
-                  <p className="text-gray-500 text-center">No confirmed appointments for today.</p>
+                  <p className="text-gray-500 text-center">Tidak ada janji temu terkonfirmasi untuk hari ini.</p>
                 ) : (
                   <div className="space-y-4">
                     {todaysAppointments.map((appointment, index) => (
@@ -312,14 +302,14 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Department Capacity */}
+          {/* Kapasitas Departemen */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100">
             <div className="p-6 border-b border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800">Department Capacity & Load</h2>
+              <h2 className="text-xl font-semibold text-gray-800">Kapasitas & Beban Departemen</h2>
             </div>
             <div className="p-6">
               {departmentCapacities.length === 0 ? (
-                <p className="text-gray-500 text-center">No departments or capacity data found.</p>
+                <p className="text-gray-500 text-center">Tidak ada departemen atau data kapasitas ditemukan.</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {departmentCapacities.map((dept, index) => (
@@ -346,7 +336,7 @@ const AdminDashboard = () => {
                         </div>
                       </div>
                       <p className="text-sm text-gray-600">
-                        {dept.patients} {dept.capacity ? `/ ${dept.capacity} capacity` : 'active'}
+                        {dept.patients} {dept.capacity ? `/ ${dept.capacity} kapasitas` : 'aktif'}
                       </p>
                     </div>
                   ))}

@@ -6,8 +6,8 @@ import AdminPage from './pages/Admin/AdminPage'; // Assuming this is the correct
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminLayout from './layouts/Admin/AdminLayout';
 import Tickets from './pages/Admin/Tickets';
-import DepartmentForm from './components/Admin/DepartmentForm';
-import StaffAccountForm from './components/Admin/StaffAccountForm';
+import DepartmentManagement from "./components/Admin/DepartmentManagement";
+import StaffAccountForm from './components/Admin/StaffManagement';
 
 // --- Guest Imports (Combined from both) ---
 // Note: Guest and Home might be slightly redundant depending on their content.
@@ -46,7 +46,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="patients" element={<AdminPage />} />
             <Route path="tickets" element={<Tickets />} />
-            <Route path="add-department" element={<DepartmentForm />} />
+            <Route path="add-department" element={<DepartmentManagement />} />
             <Route path="add-staff" element={<StaffAccountForm />} />
             {/* Keep these placeholders if genuinely planned */}
             {/* <Route path="appointments" element={<AppointmentsPagePlaceholder />} />
