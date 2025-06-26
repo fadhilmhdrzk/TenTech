@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from '../../supabaseClient';
-import { format, parseISO, differenceInMinutes, startOfDay, addDays } from 'date-fns'; // <<< TAMBAHKAN startOfDay, addDays
+import { format, parseISO, differenceInMinutes, startOfDay, addDays } from 'date-fns'; // Pastikan startOfDay dan addDays diimpor
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState([]);
@@ -23,12 +23,13 @@ const AdminDashboard = () => {
           .from('patients')
           .select('id', { count: 'exact', head: true });
 
-        const today = format(new Date(), 'yyyy-MM-dd');
+        // >>> PENTING: Untuk "Check-in Hari Ini" kita tetap bisa pakai assigned_date (string tanggal)
+        const todayString = format(new Date(), 'yyyy-MM-dd');
 
         const { count: checkedInToday } = await supabase
           .from('tickets')
           .select('id', { count: 'exact', head: true })
-          .eq('assigned_date', today)
+          .eq('assigned_date', todayString) // Membandingkan dengan string tanggal saja
           .in('status', ['checked_in', 'called', 'completed']);
 
         const { count: criticalPatients } = await supabase
@@ -38,17 +39,22 @@ const AdminDashboard = () => {
           .not('status', 'in', '("completed", "cancelled", "no_show")');
 
         // --- PERBAIKAN KUERI UNTUK "Kunjungan Selesai Hari Ini" ---
-        // Hitung tiket yang 'completed_at' berada di antara awal hari ini dan awal hari besok
-        const startOfToday = format(startOfDay(new Date()), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"); // Format ISO dengan Z atau offset
-        const startOfTomorrow = format(addDays(startOfDay(new Date()), 1), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"); // Format ISO dengan Z atau offset
+        // 1. Dapatkan objek Date untuk awal hari ini (lokal)
+        const localStartOfToday = startOfDay(new Date());
+        // 2. Dapatkan objek Date untuk awal hari besok (lokal)
+        const localStartOfTomorrow = addDays(localStartOfToday, 1);
+
+        // 3. Konversi ke string ISO UTC. Ini adalah format yang cocok untuk TIMESTAMP WITH TIME ZONE di PostgreSQL.
+        const startOfTodayISO = localStartOfToday.toISOString();
+        const startOfTomorrowISO = localStartOfTomorrow.toISOString();
 
         const { count: completedToday, error: completedError } = await supabase
           .from('tickets')
           .select('id', { count: 'exact', head: true })
-          .gte('completed_at', startOfToday) // Greater than or equal to start of today
-          .lt('completed_at', startOfTomorrow); // Less than start of tomorrow
+          .gte('completed_at', startOfTodayISO) // Greater than or equal to awal hari ini (UTC)
+          .lt('completed_at', startOfTomorrowISO); // Less than awal hari besok (UTC)
 
-        if (completedError) throw completedError; // Tangani error jika ada
+        if (completedError) throw completedError;
 
         setStats([
           { title: "Total Pasien Terdaftar", value: totalPatients ? totalPatients.toLocaleString() : '0', icon: "👥", color: "bg-blue-500" },
@@ -111,7 +117,7 @@ const AdminDashboard = () => {
     const fetchTodaysAppointments = async () => {
       setLoadingAppointments(true);
       try {
-        const today = format(new Date(), 'yyyy-MM-dd');
+        const todayString = format(new Date(), 'yyyy-MM-dd'); // Gunakan todayString
         const { data, error } = await supabase
           .from('tickets')
           .select(`
@@ -120,7 +126,7 @@ const AdminDashboard = () => {
             patient:patient_id ( full_name ),
             department:department_id ( name )
           `)
-          .eq('assigned_date', today)
+          .eq('assigned_date', todayString)
           .eq('status', 'confirmed')
           .order('assigned_time', { ascending: true })
           .limit(5);

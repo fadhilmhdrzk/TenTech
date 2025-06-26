@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../../supabaseClient";
-import bcrypt from 'bcryptjs'; // Tetap butuh bcryptjs untuk hashing kata sandi
+// import bcrypt from 'bcryptjs'; // Sudah dihapus dari sini
 
 // --- Konfigurasi Peran Staf ---
 const ROLES = ['admin', 'receptionist', 'doctor', 'nurse', 'other'];
@@ -11,29 +11,28 @@ const ROLE_TRANSLATIONS = {
   'nurse': 'Perawat',
   'other': 'Lainnya',
 };
-const SALT_ROUNDS = 10;
 
-// --- Komponen Formulir Tambah Akun Staf (dipisah atau inline) ---
+// --- Komponen Formulir Tambah Akun Staf ---
 const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(ROLES[0]);
   const [departmentId, setDepartmentId] = useState('');
   const [isActive, setIsActive] = useState(true);
 
-  const [departments, setDepartments] = useState([]); // Untuk mengisi dropdown departemen
-  const [loading, setLoading] = useState(false); // Loading state untuk form
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Ambil daftar departemen saat formulir dimuat
   useEffect(() => {
     const fetchDepartments = async () => {
       const { data, error } = await supabase
         .from('departments')
         .select('id, name')
-        .eq('is_active', true) // Hanya tampilkan departemen aktif
+        .eq('is_active', true)
         .order('name', { ascending: true });
 
       if (error) {
@@ -42,7 +41,7 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
       } else {
         setDepartments(data);
         if (data.length > 0) {
-          setDepartmentId(data[0].id); // Pilih departemen pertama secara default
+          setDepartmentId(data[0].id);
         }
       }
     };
@@ -55,8 +54,7 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
     setSubmissionStatus(null);
     setErrorMessage('');
 
-    // --- Validasi Sisi Klien Dasar ---
-    if (!name.trim() || !username.trim() || !password.trim() || !role.trim() || !departmentId) {
+    if (!name.trim() || !username.trim() || !email.trim() || !password.trim() || !role.trim()) {
       setErrorMessage('Harap isi semua kolom yang wajib diisi.');
       setSubmissionStatus('error');
       setLoading(false);
@@ -70,39 +68,64 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
     }
 
     try {
-      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      // LANGKAH 1: Buat pengguna di Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+        options: {
+            data: { full_name: name.trim(), username: username.trim(), role: role }
+        }
+      });
 
-      const { data, error } = await supabase
+      if (authError) {
+        throw authError;
+      }
+
+      const user = authData.user;
+      if (!user) {
+        setErrorMessage("Akun pengguna berhasil dibuat. Harap periksa email staf untuk memverifikasi akun sebelum login.");
+        setSubmissionStatus('error');
+        setLoading(false);
+        return;
+      }
+
+      // LANGKAH 2: Setelah pengguna dibuat di Supabase Auth, buat entri di tabel 'staff'
+      const { data: staffData, error: staffError } = await supabase
         .from('staff')
         .insert({
+          auth_id: user.id, // KUNCI PENTING: ID pengguna dari Supabase Auth
           name: name.trim(),
           username: username.trim(),
-          password_hash: hashedPassword,
+          email: email.trim(), // Tambahkan email ke tabel staff
           role: role,
-          department_id: departmentId,
+          department_id: departmentId === '' ? null : departmentId,
           is_active: isActive,
         })
-        .select();
+        .select()
+        .single();
 
-      if (error) {
-        throw error;
+      if (staffError) {
+        console.error("Error creating staff entry:", staffError);
+        await supabase.auth.admin.deleteUser(user.id);
+        throw staffError;
       }
 
       setSubmissionStatus('success');
-      console.log('Akun staf baru ditambahkan:', data);
-      onSuccess(); // Panggil callback sukses dari komponen induk
+      console.log('Akun staf baru berhasil ditambahkan:', staffData);
+      onSuccess();
 
-      // Reset form fields
       setName('');
       setUsername('');
+      setEmail('');
       setPassword('');
       setRole(ROLES[0]);
-      // departmentId dan isActive bisa tetap jika menambahkan beberapa akun untuk departemen/status yang sama
 
     } catch (error) {
       console.error('Error adding staff account:', error);
       if (error.code === '23505' && error.details.includes('username')) {
         setErrorMessage('Nama pengguna sudah ada. Harap pilih yang lain.');
+      } else if (error.message.includes("User already registered")) {
+        setErrorMessage("Email ini sudah terdaftar sebagai pengguna. Harap login atau gunakan email lain.");
       } else {
         setErrorMessage(`Gagal menambahkan akun staf: ${error.message || 'Terjadi kesalahan tidak dikenal'}.`);
       }
@@ -116,7 +139,7 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-6">
       <h2 className="text-2xl font-bold text-blue-700 mb-4">Formulir Tambah Akun Staf Baru</h2>
       <p className="text-sm text-red-500 mb-4 font-semibold">
-        PERINGATAN: Formulir ini melakukan hash kata sandi di sisi klien. Untuk produksi, pertimbangkan menggunakan Supabase Edge Function atau Fungsi Database (RPC) untuk hashing di sisi server demi meningkatkan keamanan.
+        CATATAN: Akun staf kini dibuat di sistem autentikasi pusat. Konfirmasi email mungkin diperlukan.
       </p>
 
       {submissionStatus === 'success' && (
@@ -139,8 +162,13 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Nama Pengguna *</span><span className="label-text-alt text-gray-500">Identifikasi unik untuk login</span></label>
+          <label className="label"><span className="label-text">Nama Pengguna (untuk tabel staf) *</span></label>
           <input type="text" placeholder="misal: janedoe_admin" className="input input-bordered w-full" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={loading} />
+        </div>
+
+        <div className="form-control">
+          <label className="label"><span className="label-text">Email (untuk Login) *</span></label>
+          <input type="email" placeholder="misal: staf@domain.com" className="input input-bordered w-full" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
         </div>
 
         <div className="form-control">
@@ -196,7 +224,7 @@ export default function StaffManagement() {
   const [staffList, setStaffList] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
   const [errorList, setErrorList] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false); // State untuk toggle form
+  const [showAddForm, setShowAddForm] = useState(false);
 
   // Fungsi untuk mengambil daftar staf
   const fetchStaff = async () => {
@@ -209,12 +237,13 @@ export default function StaffManagement() {
           id,
           name,
           username,
+          email,
           role,
           is_active,
           created_at,
-          department:department_id ( name ) // Join untuk nama departemen
+          department:department_id ( name )
         `)
-        .order('name', { ascending: true }); // Urutkan berdasarkan nama
+        .order('name', { ascending: true });
 
       if (error) {
         throw error;
@@ -235,8 +264,8 @@ export default function StaffManagement() {
 
   // Callback setelah formulir penambahan sukses
   const handleAddSuccess = () => {
-    setShowAddForm(false); // Sembunyikan formulir
-    fetchStaff(); // Perbarui daftar staf
+    setShowAddForm(false);
+    fetchStaff();
   };
 
   if (loadingList) {
@@ -266,7 +295,6 @@ export default function StaffManagement() {
         </button>
       </div>
 
-      {/* Render formulir secara kondisional */}
       {showAddForm && (
         <AddStaffAccountForm 
           onSuccess={handleAddSuccess} 
@@ -281,6 +309,7 @@ export default function StaffManagement() {
             <tr>
               <th className="py-3 px-4 text-left">Nama Lengkap</th>
               <th className="py-3 px-4 text-left">Nama Pengguna</th>
+              <th className="py-3 px-4 text-left">Email</th>
               <th className="py-3 px-4 text-left">Peran</th>
               <th className="py-3 px-4 text-left">Departemen</th>
               <th className="py-3 px-4 text-left">Status Akun</th>
@@ -291,13 +320,14 @@ export default function StaffManagement() {
           <tbody>
             {staffList.length === 0 ? (
               <tr>
-                <td colSpan="7" className="text-center py-4 text-gray-500">Belum ada akun staf yang terdaftar.</td>
+                <td colSpan="8" className="text-center py-4 text-gray-500">Belum ada akun staf yang terdaftar.</td>
               </tr>
             ) : (
               staffList.map((staff) => (
                 <tr key={staff.id} className="border-b border-gray-200 hover:bg-blue-50">
                   <td className="py-3 px-4 font-medium">{staff.name}</td>
                   <td className="py-3 px-4 text-gray-600">{staff.username}</td>
+                  <td className="py-3 px-4 text-gray-600">{staff.email || 'N/A'}</td>
                   <td className="py-3 px-4 text-gray-600">{ROLE_TRANSLATIONS[staff.role] || staff.role}</td>
                   <td className="py-3 px-4 text-gray-600">{staff.department?.name || 'N/A'}</td>
                   <td className="py-3 px-4">
@@ -309,7 +339,6 @@ export default function StaffManagement() {
                     {staff.created_at ? new Date(staff.created_at).toLocaleDateString('id-ID') : '-'}
                   </td>
                   <td className="py-3 px-4">
-                    {/* Tombol Edit/Hapus bisa ditambahkan di sini */}
                     <button className="btn btn-sm btn-outline mr-2">Edit</button>
                     <button className="btn btn-sm btn-error btn-outline">Hapus</button>
                   </td>

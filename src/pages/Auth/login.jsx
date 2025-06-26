@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { supabase } from "../../supabaseClient"; // <<< IMPORT BARU: Supabase client
+// import axios from "axios"; // <<< DIHAPUS: Tidak lagi diperlukan
 import { BsFillExclamationDiamondFill } from "react-icons/bs";
 import { ImSpinner2 } from "react-icons/im";
 
@@ -28,34 +29,37 @@ export default function Login() {
 
     // Validasi Form
     if (!dataForm.email || !dataForm.password) {
-      setError("Username and password required");
+      setError("Email dan kata sandi wajib diisi."); // <<< DIUBAH
       setLoading(false);
       return;
     }
 
-    axios
-      .post("https://dummyjson.com/user/login", {
-        username: dataForm.email,
+    try {
+      // --- Menggunakan Supabase Auth untuk Login ---
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: dataForm.email,
         password: dataForm.password,
-      })
-      .then((response) => {
-        if (response.status !== 200) {
-          setError(response.data.message);
-          return;
-        }
-        // Redirect to dashboard if login is successful
-        navigate("/");
-      })
-      .catch((err) => {
-        if (err.response) {
-          setError(err.response.data.message || "An error occurred");
-        } else {
-          setError(err.message || "An unknown error occurred");
-        }
-      })
-      .finally(() => {
-        setLoading(false);
       });
+
+      if (authError) {
+        throw authError; // Lempar error dari Supabase Auth
+      }
+
+      // Jika login berhasil, data.user akan berisi objek pengguna
+      console.log("Pengguna berhasil login:", data.user);
+      navigate("/"); // Arahkan ke dashboard admin setelah login berhasil (atau ke rute yang sesuai)
+
+    } catch (err) {
+      console.error("Kesalahan login:", err); // Log error lengkap
+      // Menampilkan pesan error yang lebih user-friendly dari Supabase Auth
+      if (err.message === "Invalid login credentials") { // Pesan umum untuk kredensial tidak valid
+        setError("Email atau kata sandi salah. Harap coba lagi."); // <<< DIUBAH
+      } else {
+        setError(err.message || "Terjadi kesalahan yang tidak diketahui saat login."); // <<< DIUBAH
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const errorInfo = error ? (
@@ -68,7 +72,7 @@ export default function Login() {
   const loadingInfo = loading ? (
     <div className="bg-gray-200 mb-5 p-5 text-sm rounded flex items-center">
       <ImSpinner2 className="me-2 animate-spin" />
-      Mohon Tunggu...
+      Mohon Tunggu... {/* <<< DIUBAH */}
     </div>
   ) : null;
 
@@ -78,16 +82,14 @@ export default function Login() {
         <img
           src="/src/assets/Guest/Logo.webp" // Ganti dengan path gambar logo
           alt="Logo"
-          className="absolute top-4 left-4 w-12 h-12" // Menempatkan gambar di kiri atas
+          className="absolute top-4 left-4 w-12 h-12"
         />
-        {/* Sedap Title with Bold Text */}
         <h1 className="text-5xl font-bold text-[var(--color-tosca-500)] mb-6 text-center">
-          Login
+          Masuk {/* <<< DIUBAH */}
         </h1>
 
-        {/* Welcome Back with lighter text */}
         <h2 className="text-2xl font-medium text-gray-500 mb-6 text-center">
-          Welcome Back 👋
+          Selamat Datang Kembali 👋 {/* <<< DIUBAH */}
         </h2>
 
         {errorInfo}
@@ -96,20 +98,21 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <div className="mb-5">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
+              Alamat Email {/* <<< DIUBAH */}
             </label>
             <input
               type="text"
               id="email"
               className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-2 focus:ring-[var(--color-tosca-600)]"
-              placeholder="you@example.com"
+              placeholder="anda@contoh.com" // <<< DIUBAH
               name="email"
               onChange={handleChange}
+              required // Tambahkan required
             />
           </div>
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+              Kata Sandi {/* <<< DIUBAH */}
             </label>
             <input
               type="password"
@@ -118,35 +121,36 @@ export default function Login() {
               placeholder="********"
               name="password"
               onChange={handleChange}
+              required // Tambahkan required
             />
           </div>
           <button
             type="submit"
             className="w-full bg-[var(--color-tosca-500)] hover:bg-[var(--color-tosca-600)] text-white font-bold py-2 px-4 rounded-lg transition duration-300"
           >
-            Login
+            Masuk {/* <<< DIUBAH */}
           </button>
         </form>
         <div className="mt-4 flex justify-between text-sm text-gray-600">
           <button
             type="button"
-            onClick={() => navigate("/Forgot")}
+            onClick={() => navigate("/forgot")} // Ubah ke lowercase 'forgot' jika rute Anda '/forgot'
             className="text-blue-600 hover:underline"
           >
-            Forgot Password?
+            Lupa Kata Sandi? {/* <<< DIUBAH */}
           </button>
           <button
             type="button"
-            onClick={() => navigate("/Register")}
+            onClick={() => navigate("/register")} // Ubah ke lowercase 'register' jika rute Anda '/register'
             className="text-blue-600 hover:underline"
           >
-            Register
+            Daftar {/* <<< DIUBAH */}
           </button>
         </div>
 
-        {/* Footer with RS. Awal Bros Pekanbaru */}
+        {/* Footer */}
         <footer className="mt-6 text-center text-sm text-gray-600">
-          <p>© 2025 RS. Awal Bros Pekanbaru. All rights reserved.</p>
+          <p>© 2025 RS. Awal Bros Pekanbaru. Hak cipta dilindungi undang-undang.</p> {/* <<< DIUBAH */}
         </footer>
       </div>
     </div>
