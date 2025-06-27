@@ -27,7 +27,7 @@ import Laporan from './pages/Guest/Panduan/Laporan';
 import FAQ from './pages/Guest/Panduan/FAQ';
 
 // --- Auth Pages (Import Statis) ---
-import Login from './pages/Auth/Login';
+import Login from './pages/Auth/login';
 import Register from './pages/Auth/Register';
 import Forgot from './pages/Auth/Forgot';
 
