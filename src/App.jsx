@@ -6,7 +6,7 @@ import { supabase } from './supabaseClient';
 // --- Layouts (Import Statis) ---
 import AdminLayout from './layouts/Admin/AdminLayout';
 import GuestLayout from './layouts/Guest/GuestLayout';
-
+import Kontak from './pages/Guest/Kontak';
 // --- Admin Pages (Import Statis) ---
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminPage from './pages/Admin/AdminPage';
@@ -96,6 +96,7 @@ function App() {
               <Route path="/" element={<Home />} />
               {/* Rute Profil Pengguna (Pasien) dilindungi */}
               <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+                <Route path="/Kontak" element={<Kontak/>} />
               
               {/* Rute Formulir Tiket (Dilindungi untuk pengguna yang login) */}
               <Route path="/guest" element={<RequireAuth><Guest /></RequireAuth>} />

@@ -84,9 +84,9 @@ export default function Login() {
           alt="Logo"
           className="absolute top-4 left-4 w-12 h-12"
         />
-        <h1 className="text-5xl font-bold text-[var(--color-tosca-500)] mb-6 text-center">
-          Masuk {/* <<< DIUBAH */}
-        </h1>
+        <h1 className="text-5xl font-bold text-[#00B5E2] mb-6 text-center">
+  Masuk
+</h1>
 
         <h2 className="text-2xl font-medium text-gray-500 mb-6 text-center">
           Selamat Datang Kembali 👋 {/* <<< DIUBAH */}
@@ -126,7 +126,7 @@ export default function Login() {
           </div>
           <button
             type="submit"
-            className="w-full bg-[var(--color-tosca-500)] hover:bg-[var(--color-tosca-600)] text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+            className="w-full bg-[#00B5E2] hover:bg-[#00A0C6] text-white font-bold py-2 px-4 rounded-lg transition duration-300"
           >
             Masuk {/* <<< DIUBAH */}
           </button>
