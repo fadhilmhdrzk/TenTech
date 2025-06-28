@@ -242,175 +242,80 @@ export default function Guest() {
   }
 
 
-  return (
-    <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-lg my-8">
-      <h1 className="text-3xl font-extrabold text-center text-blue-700 mb-6">Ambil Tiket Rumah Sakit Anda</h1>
-      <p className="text-center text-gray-600 mb-6">Harap isi detail Anda untuk mendapatkan nomor antrean kunjungan Anda.</p>
+ return (
+  <div className="flex justify-center px-4">
+    {/* Container Form */}
+    <div className="relative p-10 pt-20 max-w-5xl w-full bg-white rounded-2xl shadow-2xl my-10 border border-gray-200">
+      
+      {/* Logo di pojok kiri atas dalam kotak */}
+      <img
+        src="/src/assets/Guest/logo.png"
+        alt="Logo"
+        className="absolute top-8 left-6 w-35 h-35"
+      />
 
-      {submissionError && (
-        <div role="alert" className="alert alert-error mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span>{submissionError}</span>
-        </div>
-      )}
+      {/* Heading */}
+      <h1 className="text-4xl font-bold text-center text-teal-600 mb-4">Ambil Tiket Rumah Sakit Anda</h1>
+      <p className="text-center text-gray-500 mb-10">
+        Harap isi detail Anda untuk mendapatkan nomor antrean kunjungan Anda.
+      </p>
 
-      {showSuccess && ticketNumber && (
-        <div role="alert" className="alert alert-success mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span>Tiket Anda berhasil dibuat! Nomor Anda adalah: <strong>{ticketNumber}</strong></span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* --- Informasi Pasien --- */}
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Nama dan Tanggal Lahir */}
         <div className="form-control">
-          <label className="label">
-            <span className="label-text">Nama Lengkap *</span>
-          </label>
-          <input
-            className="input input-bordered w-full"
-            type="text"
-            placeholder="misal: John Doe"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-            disabled={loading || isProfileFieldsDisabled}
-          />
+          <label className="label"><span className="label-text">Nama Lengkap *</span></label>
+          <input type="text" className="input input-bordered" value={fullName} onChange={(e) => setFullName(e.target.value)} required disabled={loading || isProfileFieldsDisabled} />
+        </div>
+        <div className="form-control">
+          <label className="label"><span className="label-text">Tanggal Lahir *</span></label>
+          <input type="date" className="input input-bordered" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} required disabled={loading || isProfileFieldsDisabled} />
         </div>
 
+        {/* Jenis Kelamin dan Nomor Telepon */}
         <div className="form-control">
-          <label className="label">
-            <span className="label-text">Tanggal Lahir *</span>
-          </label>
-          <input
-            className="input input-bordered w-full"
-            type="date"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            required
-            disabled={loading || isProfileFieldsDisabled}
-          />
-        </div>
-
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Jenis Kelamin *</span>
-          </label>
-          <select
-            className="select select-bordered w-full"
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-            required
-            disabled={loading || isProfileFieldsDisabled}
-          >
+          <label className="label"><span className="label-text">Jenis Kelamin *</span></label>
+          <select className="select select-bordered" value={gender} onChange={(e) => setGender(e.target.value)} required disabled={loading || isProfileFieldsDisabled}>
             <option value="">Pilih Jenis Kelamin</option>
             <option value="male">Laki-laki</option>
             <option value="female">Perempuan</option>
           </select>
         </div>
-
         <div className="form-control">
-          <label className="label">
-            <span className="label-text">Nomor Telepon *</span>
-          </label>
-          <input
-            className="input input-bordered w-full"
-            type="tel"
-            placeholder="misal: +628123456789"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-            disabled={loading || isProfileFieldsDisabled}
-          />
+          <label className="label"><span className="label-text">Nomor Telepon *</span></label>
+          <input type="tel" className="input input-bordered" value={phone} onChange={(e) => setPhone(e.target.value)} required disabled={loading || isProfileFieldsDisabled} />
         </div>
 
+        {/* Email dan NIK */}
         <div className="form-control">
-          <label className="label">
-            <span className="label-text">Email (Opsional)</span>
-          </label>
-          <input
-            className="input input-bordered w-full"
-            type="email"
-            placeholder="misal: email.anda@contoh.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={loading || isProfileFieldsDisabled}
-          />
+          <label className="label"><span className="label-text">Email (Opsional)</span></label>
+          <input type="email" className="input input-bordered" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading || isProfileFieldsDisabled} />
+        </div>
+        <div className="form-control">
+          <label className="label"><span className="label-text">Nomor ID Nasional (KTP/NIK) *</span></label>
+          <input type="text" className="input input-bordered" value={nationalIdNumber} onChange={(e) => setNationalIdNumber(e.target.value)} required disabled={loading || isProfileFieldsDisabled} />
         </div>
 
+        {/* MRN dan checkbox kebutuhan khusus */}
         <div className="form-control">
-          <label className="label">
-            <span className="label-text">Nomor ID Nasional (KTP/NIK) *</span>
-            <span className="label-text-alt text-gray-500">Untuk identifikasi</span>
-          </label>
-          <input
-            className="input input-bordered w-full"
-            type="text"
-            placeholder="misal: 1234567890123456"
-            value={nationalIdNumber}
-            onChange={(e) => setNationalIdNumber(e.target.value)}
-            required
-            disabled={loading || isProfileFieldsDisabled}
-          />
+          <label className="label"><span className="label-text">Nomor Rekam Medis (MRN) (Opsional)</span></label>
+          <input type="text" className="input input-bordered" value={medicalRecordNumber} onChange={(e) => setMedicalRecordNumber(e.target.value)} disabled={loading || isProfileFieldsDisabled} />
+        </div>
+        <div className="form-control flex items-center gap-2 pt-8">
+          <input type="checkbox" className="checkbox checkbox-primary" checked={specialNeeds} onChange={(e) => setSpecialNeeds(e.target.checked)} disabled={loading} />
+          <label className="label"><span className="label-text">Saya memiliki kebutuhan khusus</span></label>
         </div>
 
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Nomor Rekam Medis (MRN) (Opsional)</span>
-            <span className="label-text-alt text-gray-500">Jika Anda pasien yang sudah ada</span>
-          </label>
-          <input
-            className="input input-bordered w-full"
-            type="text"
-            placeholder="misal: H0012345"
-            value={medicalRecordNumber}
-            onChange={(e) => setMedicalRecordNumber(e.target.value)}
-            disabled={loading || isProfileFieldsDisabled}
-          />
+        {/* Alasan kunjungan (full width) */}
+        <div className="col-span-1 md:col-span-2 form-control">
+          <label className="label"><span className="label-text">Alasan Kunjungan *</span></label>
+          <textarea className="textarea textarea-bordered h-24" value={reasonForVisit} onChange={(e) => setReasonForVisit(e.target.value)} required disabled={loading}></textarea>
         </div>
 
-        <div className="form-control flex-row items-center gap-2">
-          <input
-            type="checkbox"
-            className="checkbox checkbox-primary"
-            checked={specialNeeds}
-            onChange={(e) => setSpecialNeeds(e.target.checked)}
-            disabled={loading}
-          />
-          <label className="label cursor-pointer">
-            <span className="label-text">Saya memiliki kebutuhan khusus (misal: kursi roda, penerjemah)</span>
-          </label>
-        </div>
-
-        <div className="divider"></div>
-
-        {/* --- Detail Kunjungan --- */}
+        {/* Departemen dan tanggal */}
         <div className="form-control">
-          <label className="label">
-            <span className="label-text">Alasan Kunjungan *</span>
-            <span className="label-text-alt text-gray-500">Jelaskan singkat kebutuhan Anda</span>
-          </label>
-          <textarea
-            className="textarea textarea-bordered h-24 w-full"
-            placeholder="misal: Gejala flu, kontrol pasca pemeriksaan, pertanyaan administrasi"
-            value={reasonForVisit}
-            onChange={(e) => setReasonForVisit(e.target.value)}
-            required
-            disabled={loading}
-          ></textarea>
-        </div>
-
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text">Pilih Departemen *</span>
-          </label>
-          <select
-            className="select select-bordered w-full"
-            value={selectedDeptId}
-            onChange={(e) => setSelectedDeptId(e.target.value)}
-            required
-            disabled={loading || departments.length === 0}
-          >
+          <label className="label"><span className="label-text">Pilih Departemen *</span></label>
+          <select className="select select-bordered" value={selectedDeptId} onChange={(e) => setSelectedDeptId(e.target.value)} required disabled={loading || departments.length === 0}>
             <option value="">Pilih Departemen</option>
             {departments.map((dept) => (
               <option key={dept.id} value={dept.id}>
@@ -419,56 +324,38 @@ export default function Guest() {
             ))}
           </select>
         </div>
-
         <div className="form-control">
-          <label className="label">
-            <span className="label-text">Tanggal Kunjungan Pilihan *</span>
-            <span className="label-text-alt text-gray-500">Tanggal hari ini sudah terpilih secara otomatis</span>
-          </label>
-          <input
-            className="input input-bordered w-full"
-            type="date"
-            value={assignedDate}
-            min={format(new Date(), 'yyyy-MM-dd')}
-            onChange={(e) => setAssignedDate(e.target.value)}
-            required
-            disabled={loading}
-          />
+          <label className="label"><span className="label-text">Tanggal Kunjungan Pilihan *</span></label>
+          <input type="date" className="input input-bordered" value={assignedDate} min={format(new Date(), 'yyyy-MM-dd')} onChange={(e) => setAssignedDate(e.target.value)} required disabled={loading} />
         </div>
 
+        {/* Prioritas */}
         <div className="form-control">
-          <label className="label">
-            <span className="label-text">Tingkat Prioritas *</span>
-          </label>
-          <select
-            className="select select-bordered w-full"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            required
-            disabled={loading}
-          >
+          <label className="label"><span className="label-text">Tingkat Prioritas *</span></label>
+          <select className="select select-bordered" value={priority} onChange={(e) => setPriority(e.target.value)} required disabled={loading}>
             <option value="normal">Normal</option>
             <option value="high">Tinggi</option>
             <option value="emergency">Darurat (Kasus Mendesak)</option>
           </select>
         </div>
 
-        <button
-          className="btn btn-primary w-full mt-6"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? 'Membuat Tiket...' : 'Ambil Tiket Saya'}
-        </button>
+        {/* Tombol submit (full width) */}
+        <div className="col-span-1 md:col-span-2">
+          <button type="submit" className="btn btn-accent w-full mt-4 text-white text-lg tracking-wide" disabled={loading}>
+            {loading ? 'Membuat Tiket...' : 'Ambil Tiket Saya'}
+          </button>
+        </div>
       </form>
 
+      {/* Tampilan Tiket */}
       {ticketNumber && showSuccess && (
-        <div className="mt-8 p-6 bg-green-50 text-green-800 rounded-lg shadow-inner text-center">
-          <p className="font-bold text-2xl mb-2">Terima kasih! Nomor Tiket Anda adalah:</p>
+        <div className="mt-10 p-6 bg-green-50 border border-green-200 rounded-lg shadow text-center">
+          <p className="text-xl font-semibold text-green-800 mb-2">Terima kasih! Nomor Tiket Anda adalah:</p>
           <p className="text-5xl font-extrabold text-blue-700">{ticketNumber}</p>
-          <p className="mt-4 text-gray-700">Harap tunggu nomor Anda dipanggil oleh staf.</p>
+          <p className="mt-4 text-gray-600">Harap tunggu nomor Anda dipanggil oleh staf.</p>
         </div>
       )}
     </div>
-  );
+  </div>
+);
 }

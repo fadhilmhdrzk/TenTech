@@ -71,9 +71,9 @@ export default function Forgot() {
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg relative">
         <img
-          src="/src/assets/Guest/Logo.webp" // Menggunakan path gambar logo
+          src="/src/assets/Guest/logo.png" // Ganti dengan path gambar logo
           alt="Logo"
-          className="absolute top-4 left-4 w-12 h-12"
+          className="absolute top-4 left-4 w-18 h-19"
         />
         
        <h1 className="text-5xl font-bold text-[#00B5E2] mb-6 text-center">
