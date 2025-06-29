@@ -1,14 +1,23 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../../components/Guest/Navbar";
-
+import Footer from "../../components/Guest/Footer";
+import Daftar from "../../components/Guest/Daftar";
 
 export default function GuestLayout() {
-    return (
-        <div id="app-container" className="min-h-screen flex flex-col">
-            <Navbar />
-            <div id="main-content" className="flex-1">
-                <Outlet />
-            </div>
-        </div>
-    );
+  const location = useLocation();
+
+  // Path yang ingin disembunyikan <Daftar />
+  const hiddenPaths = ["/guest"];
+  const hideDaftar = hiddenPaths.includes(location.pathname);
+
+  return (
+    <div className="w-full min-h-screen flex flex-col overflow-x-hidden">
+      <Navbar />
+      <main className="flex-1">
+        <Outlet />
+        {!hideDaftar && <Daftar />}
+      </main>
+      <Footer />
+    </div>
+  );
 }

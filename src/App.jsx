@@ -25,6 +25,11 @@ import Hangtuah from './pages/Guest/RS/Hangtuah';
 import Internasional from './pages/Guest/Panduan/Internasional';
 import Laporan from './pages/Guest/Panduan/Laporan';
 import FAQ from './pages/Guest/Panduan/FAQ';
+import Doctor from "./pages/Guest/Footer/Doctor";
+import Awards from "./pages/Guest/Footer/Awards";
+import Specialities from "./pages/Guest/Footer/Specialities";
+import Karir from "./pages/Guest/Footer/Karir";
+import Company from "./pages/Guest/Footer/Company";
 
 // --- Auth Pages (Import Statis) ---
 import Login from './pages/Auth/login';
@@ -109,6 +114,13 @@ function App() {
               <Route path="/Panduan/internasional" element={<Internasional />} />
               <Route path="/Panduan/Laporan" element={<Laporan />} />
               <Route path="/Panduan/faq" element={<FAQ />} />
+
+              {/* New Footer Routes from guest branch */}
+              <Route path="/Footer/Doctor" element={<Doctor />} />
+              <Route path="/Footer/Awards" element={<Awards />} />
+              <Route path="/Footer/Specialities" element={<Specialities />} />
+              <Route path="/Footer/Karir" element={<Karir />} />
+              <Route path="/Footer/Company" element={<Company />} />
             </Route>
 
             {/* Rute catch-all untuk halaman tidak ditemukan */}

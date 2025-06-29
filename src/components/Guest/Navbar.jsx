@@ -76,11 +76,6 @@ export default function Navbar() {
               <Link to="/Panduan/faq">FAQ</Link>
             </Dropdown>
 
-            <Dropdown label="Layanan">
-              <Link to="/layanan/umum">Layanan Umum</Link>
-              <Link to="/layanan/spesialis">Layanan Spesialis</Link>
-            </Dropdown>
-
             <Dropdown label="Rumah Sakit Kami">
               <Link to="/RS/pekanbaru" className="whitespace-nowrap">RS Awal Bros Pekanbaru</Link>
               <Link to="/RS/panam" className="whitespace-nowrap">RS Awal Bros Panam</Link>
@@ -88,7 +83,7 @@ export default function Navbar() {
               <Link to="/RS/hangtuah" className="whitespace-nowrap">RS Awal Bros Hangtuah</Link>
             </Dropdown>
 
-            <Link to="/kontak" className="hover:text-blue-700">Pendaftaran Antrian</Link>
+            <Link to="/guest" className="hover:text-blue-700">Pendaftaran Antrian</Link>
             <Link to="/kontak" className="hover:text-blue-700">Kontak</Link>
           </nav>
 

@@ -1,18 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 export default function Profile() {
   const menuItems = [
     "Visi dan Misi",
-    "Struktur Organisasi",
     "Sejarah",
-    "Landasan Hukum",
     "Tugas dan Fungsi",
-    "Budaya Organisasi",
-    "Direksi",
-    "Dewan Pengawas",
-    "Senior Leader",
   ];
+
   const [active, setActive] = useState("Visi dan Misi");
 
   const renderContent = () => {
@@ -20,32 +14,72 @@ export default function Profile() {
       case "Visi dan Misi":
         return (
           <div>
-            <h2 className="text-xl font-semibold mb-2">VISI DAN MISI BPJS KESEHATAN</h2>
-            <h3 className="font-bold mb-1">VISI</h3>
+            <h2 className="text-xl font-semibold mb-2">VISI</h2>
             <p className="mb-4">
-              Menjadi badan penyelenggara yang <strong>dinamis</strong>, <strong>akuntabel</strong>,
-              dan <strong>terpercaya</strong> untuk mewujudkan jaminan kesehatan yang
-              <strong> berkualitas</strong>, <strong>berkelanjutan</strong>, <strong>berkeadilan</strong>,
-              dan <strong>inklusif</strong>.
+              Menjadi jaringan rumah sakit swasta terkemuka yang terpercaya dan berkualitas internasional.
             </p>
-            <h3 className="font-bold mb-1">MISI</h3>
+            <h2 className="text-xl font-semibold mb-2">MISI</h2>
             <ol className="list-decimal ml-6 space-y-1">
-              <li>Meningkatkan kualitas layanan kepada peserta melalui layanan terintegrasi berbasis teknologi informasi.</li>
-              <li>Menjaga keberlanjutan Program JKN-KIS dengan menyimbangkan antara dana jaminan sosial dan biaya manfaat yang terkendali.</li>
-              <li>Memberikan jaminan kesehatan yang berkeadilan dan inklusif mencakup seluruh penduduk Indonesia.</li>
-              <li>Memperkuat <em>engagement</em> dengan meningkatkan sinergi dan kolaborasi para pemangku kepentingan dalam mengimplementasikan program JKN-KIS.</li>
-              <li>Meningkatkan kapabilitas Badan dalam menyelenggarakan Program JKN-KIS secara efisien dan efektif yang akuntabel, berkehatian-hatian, dan dengan prinsip tata kelola yang baik.</li>
+              <li>Memberikan pelayanan kesehatan terbaik dengan profesionalisme dan etika.</li>
+              <li>Meningkatkan mutu pelayanan melalui inovasi dan teknologi.</li>
+              <li>Mengedepankan keselamatan dan kepuasan pasien.</li>
             </ol>
           </div>
         );
+      case "Sejarah":
+        return (
+          <div>
+            <h2 className="text-xl font-semibold mb-2">Sejarah</h2>
+            <p>
+              Rumah Sakit Awal Bros pertama kali didirikan di Pekanbaru, Riau, pada tahun 1998 oleh seorang pengusaha lokal bernama H. Awaloedin. Nama “Awal Bros” diambil dari nama 
+              pendirinya, di mana “Awal” berasal dari Awaloedin dan “Bros” merupakan singkatan dari “brothers”, yang mencerminkan semangat kekeluargaan dan kerja sama. Pendirian rumah 
+              sakit ini dilatarbelakangi oleh kebutuhan masyarakat akan layanan kesehatan yang modern, profesional, dan terpercaya di wilayah tersebut. Sejak awal, Awal Bros memiliki 
+              visi untuk memberikan pelayanan kesehatan yang berkualitas dan terjangkau, dengan mengedepankan keselamatan pasien serta pemanfaatan teknologi medis terkini. Seiring waktu, 
+              rumah sakit ini berkembang pesat dan membuka cabang di berbagai kota besar di Indonesia seperti Jakarta, Tangerang, Batam, dan Makassar. Untuk memastikan standar pelayanan 
+              yang tinggi, Awal Bros juga berhasil meraih berbagai akreditasi nasional maupun internasional, termasuk dari Joint Commission International (JCI). Dalam perjalanannya, 
+              manajemen Awal Bros terus melakukan transformasi dan inovasi guna meningkatkan mutu layanan serta menjalin kerja sama strategis dengan berbagai institusi kesehatan dan 
+              pendidikan.
+            </p>
+          </div>
+        );
+      case "Tugas dan Fungsi":
+        return (
+          <div>
+            <h2 className="text-xl font-semibold mb-2">Tugas Utama Rumah Sakit Awal Bros</h2>
+            <p className="mb-4">
+              Menyelenggarakan pelayanan kesehatan yang profesional, aman, dan bermutu kepada masyarakat. Pelayanan ini mencakup aspek promotif, preventif, kuratif, dan rehabilitatif sesuai dengan standar pelayanan rumah sakit nasional dan internasional.
+            </p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">Fungsi Awal Bros</h3>
+            <ul className="list-disc ml-6 space-y-2">
+              <li>
+                <strong>Pelayanan Medis:</strong> Memberikan pelayanan kesehatan yang komprehensif, mulai dari layanan umum, spesialis, hingga subspesialis dengan tenaga medis yang kompeten dan berpengalaman.
+              </li>
+              <li>
+                <strong>Pelayanan Keperawatan dan Penunjang Klinis:</strong> Menyediakan layanan keperawatan yang ramah, cepat tanggap, serta dukungan penunjang seperti laboratorium, radiologi, farmasi, dan lainnya.
+              </li>
+              <li>
+                <strong>Pendidikan dan Pelatihan Kesehatan:</strong> Menjadi tempat pelatihan bagi tenaga kesehatan seperti dokter, perawat, dan tenaga medis lainnya dalam rangka pengembangan kompetensi dan profesionalisme.
+              </li>
+              <li>
+                <strong>Penjaminan Mutu dan Keselamatan Pasien:</strong> Menjalankan sistem manajemen mutu yang berkelanjutan serta memastikan setiap tindakan medis mengutamakan keselamatan pasien.
+              </li>
+              <li>
+                <strong>Pengembangan Teknologi dan Inovasi Medis:</strong> Mengadopsi teknologi terbaru dalam bidang kesehatan untuk meningkatkan akurasi diagnosis, efektivitas pengobatan, dan kenyamanan pasien.
+              </li>
+              <li>
+                <strong>Pelayanan Kesehatan Masyarakat:</strong> Berperan aktif dalam kegiatan sosial seperti penyuluhan kesehatan, pemeriksaan gratis, dan program CSR lainnya demi meningkatkan kualitas hidup masyarakat.
+              </li>
+            </ul>
+          </div>
+        );
       default:
-        return <p className="text-gray-600">Konten {active} belum tersedia.</p>;
+        return <p className="text-gray-600">Konten belum tersedia.</p>;
     }
   };
 
   return (
     <div>
-      {/* Header Gambar Full */}
       <div className="relative w-full h-[320px] lg:h-[400px] overflow-hidden mb-8">
         <img
           src="https://bumnreview.com/wp-content/uploads/2024/07/Rs-Awal-Bros-Botania-Batam.jpg"
@@ -59,9 +93,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-screen-xl mx-auto p-6 flex flex-col lg:flex-row gap-8">
-        {/* Sidebar Menu */}
         <aside className="w-full lg:w-1/3">
           <div className="bg-white border rounded-lg shadow-md">
             {menuItems.map((item) => (
@@ -78,7 +110,6 @@ export default function Profile() {
           </div>
         </aside>
 
-        {/* Konten Aktif */}
         <section className="w-full lg:w-2/3">
           <div className="bg-white border rounded-lg shadow-md p-6">
             {renderContent()}
