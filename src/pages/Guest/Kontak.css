@@ -84,13 +84,16 @@
 
 .banner-image {
   flex: 1;
-  max-width: 500px;
+  max-width: 800px;  /* Meningkatkan ukuran gambar */
+  height: auto;
+  margin-left: 20px;
 }
 
-.image-banner {
-  width: 100%;
+.banner-image img {
+  width: 100%;  /* Memastikan gambar memenuhi container */
   height: auto;
   border-radius: 10px;
+  object-fit: cover;  /* Menjaga rasio aspek gambar agar tidak terdistorsi */
 }
 
 /* Bagian Kontak Lainnya */

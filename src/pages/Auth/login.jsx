@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "../../supabaseClient"; 
+import logo from '../../assets/Guest/logo.png'; // Path logo
 import { BsFillExclamationDiamondFill } from "react-icons/bs";
 import { ImSpinner2 } from "react-icons/im";
 
@@ -38,14 +39,11 @@ export default function Login() {
         password: dataForm.password,
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        throw authError;
+      }
 
       console.log("Pengguna berhasil login:", data.user);
-
-      // ✅ Simpan status login ke localStorage
-      localStorage.setItem("isLoggedIn", "true");
-
-      // ✅ Redirect ke halaman utama
       navigate("/");
 
     } catch (err) {
@@ -77,13 +75,12 @@ export default function Login() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg relative">
-        <img
-          src="/src/assets/Guest/logo.png"
-          alt="Logo"
-          className="absolute top-4 left-4 w-18 h-19"
-        />
+        {/* Logo di pojok kiri atas */}
+        <div className="absolute top-4 left-4 flex items-center space-x-4 mb-6">
+          <img src={logo} alt="Logo" className="h-24 w-auto" /> {/* Ukuran logo lebih besar */}
+        </div>
 
-        <h1 className="text-5xl font-bold text-[#00B5E2] mb-6 text-center">
+        <h1 className="text-5xl font-bold text-[#00B5E2] mb-6 text-center mt-1">
           Masuk
         </h1>
 
@@ -130,7 +127,6 @@ export default function Login() {
             Masuk
           </button>
         </form>
-
         <div className="mt-4 flex justify-between text-sm text-gray-600">
           <button
             type="button"
@@ -148,6 +144,7 @@ export default function Login() {
           </button>
         </div>
 
+        {/* Footer */}
         <footer className="mt-6 text-center text-sm text-gray-600">
           <p>© 2025 RS. Awal Bros Pekanbaru. Hak cipta dilindungi undang-undang.</p>
         </footer>

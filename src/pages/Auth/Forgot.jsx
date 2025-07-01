@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { BsFillExclamationDiamondFill } from "react-icons/bs";
+import { ImSpinner2 } from "react-icons/im";
+import logo from '../../assets/Guest/logo.png';
 
 export default function Forgot() {
   const navigate = useNavigate();
@@ -23,7 +26,6 @@ export default function Forgot() {
     setLoading(true);
     setError("");
 
-    // Validasi email
     if (!dataForm.email) {
       setError("Email is required");
       setLoading(false);
@@ -70,22 +72,22 @@ export default function Forgot() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg relative">
-        <img
-          src="/src/assets/Guest/logo.png" // Ganti dengan path gambar logo
-          alt="Logo"
-          className="absolute top-4 left-4 w-18 h-19"
-        />
-        
-       <h1 className="text-5xl font-bold text-[#00B5E2] mb-6 text-center">
-          Forgot
-        </h1>
-        <h2 className="text-2xl font-medium text-gray-500 mb-6 text-center">
-          Forgot Your Password?
-        </h2>
+        {/* Logo di pojok kiri atas */}
+        <div className="absolute top-4 left-4 flex items-center space-x-4 mb-6">
+          <img src={logo} alt="Logo" className="h-24 w-auto" /> {/* Ukuran logo lebih besar */}
+        </div>
 
-        <p className="text-sm text-gray-500 mb-6 text-center">
-          Enter your email address and we'll send you a link to reset your password.
-        </p>
+        <div className="text-center">
+          <h1 className="text-5xl font-bold text-[#00B5E2]">
+            Forgot
+          </h1>
+          <h2 className="text-2xl font-medium text-gray-500 mb-6">
+            Forgot Your Password?
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Enter your email address and we'll send you a link to reset your password.
+          </p>
+        </div>
 
         {errorInfo}
         {loadingInfo}
@@ -104,10 +106,10 @@ export default function Forgot() {
               onChange={handleChange}
             />
           </div>
-         <button
-  type="submit"
-  className="w-full bg-[#00B5E2] hover:bg-[#00A0C6] text-white font-bold py-2 px-4 rounded-lg transition duration-300"
->
+          <button
+            type="submit"
+            className="w-full bg-[#00B5E2] hover:bg-[#00A0C6] text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+          >
             Send Reset Link
           </button>
         </form>

@@ -1,5 +1,6 @@
 import React from 'react';
 import './Kontak.css'; // Pastikan file CSS sudah disiapkan dengan benar
+import gedung from '../../assets/Guest/gedung.jpg';
 
 function Kontak() {
   return (
@@ -11,11 +12,7 @@ function Kontak() {
           <p>Kami siap membantu Anda!</p>
         </div>
         <div className="banner-image">
-          <img
-            src="/src/assets/Guest/gedung.jpg" // Ganti dengan path gambar yang sesuai
-            alt="Kontak Kami"
-            className="image-banner"
-          />
+           <img src={gedung} alt="gedung" className="h-20 w-auto" />
         </div>
       </div>
 

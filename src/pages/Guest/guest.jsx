@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from "../../supabaseClient";
 import { format } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/Guest/logo.png';
 
 export default function Guest() {
   const { user, userProfile, loading: authLoading } = useAuth(); // <<< GUNAKAN useAuth
@@ -247,12 +248,7 @@ export default function Guest() {
     {/* Container Form */}
     <div className="relative p-10 pt-20 max-w-5xl w-full bg-white rounded-2xl shadow-2xl my-10 border border-gray-200">
       
-      {/* Logo di pojok kiri atas dalam kotak */}
-      <img
-        src="/src/assets/Guest/logo.png"
-        alt="Logo"
-        className="absolute top-8 left-6 w-35 h-35"
-      />
+       <img src={logo} alt="Logo" className="h-20 w-auto" />
 
       {/* Heading */}
       <h1 className="text-4xl font-bold text-center text-teal-600 mb-4">Ambil Tiket Rumah Sakit Anda</h1>
