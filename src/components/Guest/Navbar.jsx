@@ -1,7 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../supabaseClient";
 
 export default function Navbar() {
+  const { user, staffProfile } = useAuth();
+  const navigate = useNavigate();
+
+  const isLoggedIn = !!user;
+  const isAdmin = staffProfile?.role === "admin"; // ← Cek peran admin
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
   const Dropdown = ({ label, children }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -85,11 +98,29 @@ export default function Navbar() {
 
             <Link to="/guest" className="hover:text-blue-700">Pendaftaran Antrian</Link>
             <Link to="/kontak" className="hover:text-blue-700">Kontak</Link>
+
+            {/* 🔐 Link Admin Hanya Muncul Jika Admin Login */}
+            {isLoggedIn && isAdmin && (
+              <Link to="/admin" className="hover:text-blue-700 font-semibold">Admin</Link>
+            )}
           </nav>
 
           <div className="flex items-center gap-2">
-            <input type="text" placeholder="Cari" className="border px-2 py-1 rounded-md text-sm" />
-            <button className="bg-teal-600 text-white px-3 py-1 rounded-md text-sm">ID ▾</button>
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-semibold shadow hover:bg-red-700 transition"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="bg-teal-600 text-white px-4 py-2 rounded-md text-sm font-semibold shadow hover:bg-teal-700 transition"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -105,6 +136,6 @@ export default function Navbar() {
           }}
         />
       </div>
-    </>
-  );
+    </>
+  );
 }
