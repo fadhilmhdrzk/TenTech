@@ -12,7 +12,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/login");
+    navigate("/"); // ⬅️ Arahkan ke dashboard
   };
 
   const Dropdown = ({ label, children }) => {
@@ -39,7 +39,13 @@ export default function Navbar() {
       <div className="relative cursor-pointer" ref={dropdownRef}>
         <span onClick={toggleDropdown} className="hover:text-blue-700 flex items-center">
           {label}
-          <span className="ml-1 text-xs" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+          <span
+            className="ml-1 text-xs"
+            style={{
+              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s",
+            }}
+          >
             ▾
           </span>
         </span>

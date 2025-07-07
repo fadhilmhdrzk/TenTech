@@ -100,7 +100,7 @@ function App() {
             <Route element={<GuestLayout />}>
               <Route path="/" element={<Home />} />
               {/* Rute Profil Pengguna (Pasien) dilindungi */}
-              <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+              <Route path="/profile" element={<Profile />}/>
                 <Route path="/Kontak" element={<Kontak/>} />
               
               {/* Rute Formulir Tiket (Dilindungi untuk pengguna yang login) */}
