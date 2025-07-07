@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../supabaseClient";
 import { format, parseISO } from "date-fns";
 import NowServingDisplay from "../../components/NowServingDisplay"; // Sesuaikan path jika perlu
+import MultiDepartmentQueueBoard from "../../components/MultiDepartmentQueueBoard"; // <<< IMPORT BARU
 
 export default function Tickets() {
   const [tickets, setTickets] = useState([]);
@@ -44,11 +45,11 @@ export default function Tickets() {
       }
 
       if (searchTerm) {
-          query = query.or(`patient.full_name.ilike.%${searchTerm}%,department.name.ilike.%${searchTerm}%`);
+        query = query.or(`patient.full_name.ilike.%${searchTerm}%,department.name.ilike.%${searchTerm}%`);
       }
 
       query = query.order("assigned_time", { ascending: true })
-                     .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true });
 
       const { data, error } = await query;
 
@@ -123,20 +124,20 @@ export default function Tickets() {
   };
 
   const formatTime = (timeString) => {
-      if (!timeString) return "-";
-      const [hours, minutes] = timeString.split(':');
-      // Menggunakan toLocaleTimeString jika hanya waktu
-      return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    if (!timeString) return "-";
+    const [hours, minutes] = timeString.split(':');
+    // Menggunakan toLocaleTimeString jika hanya waktu
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
   }
 
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-extrabold text-blue-700 mb-6">Manajemen Antrean Tiket</h1> {/* <<< DIUBAH */}
+      <h1 className="text-3xl font-extrabold text-blue-700 mb-6">Manajemen Antrean Tiket</h1>
 
-      {/* Now Serving Display on Admin Tickets Page */}
+      {/* Ganti Now Serving Display lama dengan MultiDepartmentQueueBoard */}
       <div className="mb-8">
-        <NowServingDisplay />
+        <MultiDepartmentQueueBoard /> {/* <<< PENGGUNAAN BARU */}
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -162,14 +163,14 @@ export default function Tickets() {
           />
         </div>
         <div className="flex items-end">
-             <button
-               onClick={() => fetchTickets()}
-               className="btn btn-primary w-full md:w-auto"
-               disabled={loading}
-             >
-               {loading ? "Memuat Ulang..." : "Muat Ulang Tiket"} {/* <<< DIUBAH */}
-             </button>
-         </div>
+          <button
+            onClick={() => fetchTickets()}
+            className="btn btn-primary w-full md:w-auto"
+            disabled={loading}
+          >
+            {loading ? "Memuat Ulang..." : "Muat Ulang Tiket"} {/* <<< DIUBAH */}
+          </button>
+        </div>
       </div>
 
 
@@ -225,40 +226,38 @@ export default function Tickets() {
                     </td>
                     <td className="py-3 px-4">
                       <span
-                        className={`badge ${
-                          ticket.status === "waiting" ? "badge-warning" :
-                          ticket.status === "confirmed" ? "badge-info" :
-                          ticket.status === "checked_in" ? "badge-primary" :
-                          ticket.status === "called" ? "badge-success" :
-                          ticket.status === "completed" ? "badge-accent" :
-                          ticket.status === "cancelled" || ticket.status === "no_show" ? "badge-error" :
-                          "badge-ghost"
-                        } text-sm font-semibold`}
+                        className={`badge ${ticket.status === "waiting" ? "badge-warning" :
+                            ticket.status === "confirmed" ? "badge-info" :
+                              ticket.status === "checked_in" ? "badge-primary" :
+                                ticket.status === "called" ? "badge-success" :
+                                  ticket.status === "completed" ? "badge-accent" :
+                                    ticket.status === "cancelled" || ticket.status === "no_show" ? "badge-error" :
+                                      "badge-ghost"
+                          } text-sm font-semibold`}
                       >
                         {/* Terjemahkan status */}
                         {ticket.status === 'waiting' ? 'Menunggu' :
-                         ticket.status === 'confirmed' ? 'Dikonfirmasi' :
-                         ticket.status === 'checked_in' ? 'Check-in' :
-                         ticket.status === 'called' ? 'Dipanggil' :
-                         ticket.status === 'completed' ? 'Selesai' :
-                         ticket.status === 'cancelled' ? 'Dibatalkan' :
-                         ticket.status === 'no_show' ? 'Tidak Hadir' :
-                         ticket.status} {/* <<< DIUBAH */}
+                          ticket.status === 'confirmed' ? 'Dikonfirmasi' :
+                            ticket.status === 'checked_in' ? 'Check-in' :
+                              ticket.status === 'called' ? 'Dipanggil' :
+                                ticket.status === 'completed' ? 'Selesai' :
+                                  ticket.status === 'cancelled' ? 'Dibatalkan' :
+                                    ticket.status === 'no_show' ? 'Tidak Hadir' :
+                                      ticket.status} {/* <<< DIUBAH */}
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <span
-                        className={`badge ${
-                          ticket.priority === "high" ? "badge-error" :
-                          ticket.priority === "emergency" ? "badge-danger animate-pulse" :
-                          "badge-ghost"
-                        } text-sm font-semibold`}
+                        className={`badge ${ticket.priority === "high" ? "badge-error" :
+                            ticket.priority === "emergency" ? "badge-danger animate-pulse" :
+                              "badge-ghost"
+                          } text-sm font-semibold`}
                       >
                         {/* Terjemahkan prioritas */}
                         {ticket.priority === 'normal' ? 'Normal' :
-                         ticket.priority === 'high' ? 'Tinggi' :
-                         ticket.priority === 'emergency' ? 'Darurat' :
-                         ticket.priority} {/* <<< DIUBAH */}
+                          ticket.priority === 'high' ? 'Tinggi' :
+                            ticket.priority === 'emergency' ? 'Darurat' :
+                              ticket.priority} {/* <<< DIUBAH */}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600">{formatDateTime(ticket.created_at)}</td>
@@ -274,35 +273,35 @@ export default function Tickets() {
                         disabled={loading || ticket.status === 'completed' || ticket.status === 'cancelled' || ticket.status === 'no_show'}
                       >
                         {ticket.status === 'pending' && (
-                            <>
-                                <option value="pending">Menunggu</option> {/* <<< DIUBAH */}
-                                <option value="confirmed">Konfirmasi</option> {/* <<< DIUBAH */}
-                                <option value="cancelled">Batalkan</option> {/* <<< DIUBAH */}
-                            </>
+                          <>
+                            <option value="pending">Menunggu</option> {/* <<< DIUBAH */}
+                            <option value="confirmed">Konfirmasi</option> {/* <<< DIUBAH */}
+                            <option value="cancelled">Batalkan</option> {/* <<< DIUBAH */}
+                          </>
                         )}
                         {ticket.status === 'confirmed' && (
-                            <>
-                                <option value="confirmed">Dikonfirmasi</option> {/* <<< DIUBAH */}
-                                <option value="checked_in">Check-in</option> {/* <<< DIUBAH */}
-                                <option value="called">Panggil Pasien</option> {/* <<< DIUBAH */}
-                                <option value="cancelled">Batalkan</option> {/* <<< DIUBAH */}
-                                <option value="no_show">Tidak Hadir</option> {/* <<< DIUBAH */}
-                            </>
+                          <>
+                            <option value="confirmed">Dikonfirmasi</option> {/* <<< DIUBAH */}
+                            <option value="checked_in">Check-in</option> {/* <<< DIUBAH */}
+                            <option value="called">Panggil Pasien</option> {/* <<< DIUBAH */}
+                            <option value="cancelled">Batalkan</option> {/* <<< DIUBAH */}
+                            <option value="no_show">Tidak Hadir</option> {/* <<< DIUBAH */}
+                          </>
                         )}
                         {ticket.status === 'checked_in' && (
-                            <>
-                                <option value="checked_in">Check-in</option> {/* <<< DIUBAH */}
-                                <option value="called">Panggil Pasien</option> {/* <<< DIUBAH */}
-                                <option value="completed">Selesaikan Kunjungan</option> {/* <<< DIUBAH */}
-                                <option value="cancelled">Batalkan</option> {/* <<< DIUBAH */}
-                            </>
+                          <>
+                            <option value="checked_in">Check-in</option> {/* <<< DIUBAH */}
+                            <option value="called">Panggil Pasien</option> {/* <<< DIUBAH */}
+                            <option value="completed">Selesaikan Kunjungan</option> {/* <<< DIUBAH */}
+                            <option value="cancelled">Batalkan</option> {/* <<< DIUBAH */}
+                          </>
                         )}
                         {ticket.status === 'called' && (
-                            <>
-                                <option value="called">Dipanggil</option> {/* <<< DIUBAH */}
-                                <option value="completed">Selesaikan Kunjungan</option> {/* <<< DIUBAH */}
-                                <option value="cancelled">Batalkan</option> {/* <<< DIUBAH */}
-                            </>
+                          <>
+                            <option value="called">Dipanggil</option> {/* <<< DIUBAH */}
+                            <option value="completed">Selesaikan Kunjungan</option> {/* <<< DIUBAH */}
+                            <option value="cancelled">Batalkan</option> {/* <<< DIUBAH */}
+                          </>
                         )}
                         {ticket.status === 'completed' && <option value="completed">Selesai</option>} {/* <<< DIUBAH */}
                         {ticket.status === 'cancelled' && <option value="cancelled">Dibatalkan</option>} {/* <<< DIUBAH */}

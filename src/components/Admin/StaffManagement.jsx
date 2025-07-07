@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../../supabaseClient";
-// import bcrypt from 'bcryptjs'; // Sudah dihapus dari sini
+import { useAuth } from '../../context/AuthContext'; // <<< PERBAIKAN DI SINI: useAuth sekarang diimpor
 
 // --- Konfigurasi Peran Staf ---
 const ROLES = ['admin', 'receptionist', 'doctor', 'nurse', 'other'];
@@ -13,14 +13,14 @@ const ROLE_TRANSLATIONS = {
 };
 
 // --- Komponen Formulir Tambah Akun Staf ---
-const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+const AddStaffAccountForm = ({ onSuccess, onCancel, currentStaff = null, isLoading }) => {
+  const [name, setName] = useState(currentStaff ? currentStaff.name : '');
+  const [username, setUsername] = useState(currentStaff ? currentStaff.username : '');
+  const [email, setEmail] = useState(currentStaff ? currentStaff.email : '');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState(ROLES[0]);
-  const [departmentId, setDepartmentId] = useState('');
-  const [isActive, setIsActive] = useState(true);
+  const [role, setRole] = useState(currentStaff ? currentStaff.role : ROLES[0]);
+  const [departmentId, setDepartmentId] = useState(currentStaff ? currentStaff.department_id : '');
+  const [isActive, setIsActive] = useState(currentStaff ? currentStaff.is_active : true);
 
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,13 +40,13 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
         setErrorMessage('Gagal memuat departemen untuk pilihan.');
       } else {
         setDepartments(data);
-        if (data.length > 0) {
+        if (data.length > 0 && !currentStaff) {
           setDepartmentId(data[0].id);
         }
       }
     };
     fetchDepartments();
-  }, []);
+  }, [currentStaff]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,12 +55,16 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
     setErrorMessage('');
 
     if (!name.trim() || !username.trim() || !email.trim() || !password.trim() || !role.trim()) {
-      setErrorMessage('Harap isi semua kolom yang wajib diisi.');
-      setSubmissionStatus('error');
-      setLoading(false);
-      return;
+      if (currentStaff && !password.trim()) {
+        // OK for edit, password not changed
+      } else {
+        setErrorMessage('Harap isi semua kolom yang wajib diisi.');
+        setSubmissionStatus('error');
+        setLoading(false);
+        return;
+      }
     }
-    if (password.length < 6) {
+    if (password.trim() && password.length < 6) {
       setErrorMessage('Kata sandi harus minimal 6 karakter.');
       setSubmissionStatus('error');
       setLoading(false);
@@ -68,66 +72,99 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
     }
 
     try {
-      // LANGKAH 1: Buat pengguna di Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password.trim(),
-        options: {
-            data: { full_name: name.trim(), username: username.trim(), role: role }
+      let user = currentStaff?.auth_id ? { id: currentStaff.auth_id } : null;
+      let authError = null;
+
+      if (!currentStaff) { // Jika menambah akun baru
+        const { data: authData, error: newAuthError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password: password.trim(),
+          options: {
+              data: { full_name: name.trim(), username: username.trim(), role: role }
+          }
+        });
+        user = authData.user;
+        authError = newAuthError;
+
+        if (authError) {
+          throw authError;
         }
-      });
-
-      if (authError) {
-        throw authError;
+        if (!user) { // Jika email confirmation diaktifkan
+          setErrorMessage("Akun pengguna berhasil dibuat. Harap periksa email staf untuk memverifikasi akun sebelum login.");
+          setSubmissionStatus('error');
+          setLoading(false);
+          return;
+        }
+      } else if (password.trim()) { // Jika edit dan password diubah
+        console.warn("Peringatan: Perubahan kata sandi untuk user yang ada tidak didukung langsung via form edit staff.");
       }
 
-      const user = authData.user;
-      if (!user) {
-        setErrorMessage("Akun pengguna berhasil dibuat. Harap periksa email staf untuk memverifikasi akun sebelum login.");
-        setSubmissionStatus('error');
-        setLoading(false);
-        return;
+
+      let data, error;
+      if (currentStaff) { // Jika mengedit
+        ({ data, error } = await supabase
+          .from('staff')
+          .update({
+            name: name.trim(),
+            username: username.trim(),
+            email: email.trim(),
+            role: role,
+            department_id: departmentId === '' ? null : departmentId,
+            is_active: isActive,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentStaff.id)
+          .select());
+      } else { // Jika menambah
+        ({ data, error } = await supabase
+          .from('staff')
+          .insert({
+            auth_id: user.id,
+            name: name.trim(),
+            username: username.trim(),
+            email: email.trim(),
+            role: role,
+            department_id: departmentId === '' ? null : departmentId,
+            is_active: isActive,
+          })
+          .select()
+          .single());
       }
 
-      // LANGKAH 2: Setelah pengguna dibuat di Supabase Auth, buat entri di tabel 'staff'
-      const { data: staffData, error: staffError } = await supabase
-        .from('staff')
-        .insert({
-          auth_id: user.id, // KUNCI PENTING: ID pengguna dari Supabase Auth
-          name: name.trim(),
-          username: username.trim(),
-          email: email.trim(), // Tambahkan email ke tabel staff
-          role: role,
-          department_id: departmentId === '' ? null : departmentId,
-          is_active: isActive,
-        })
-        .select()
-        .single();
-
-      if (staffError) {
-        console.error("Error creating staff entry:", staffError);
-        await supabase.auth.admin.deleteUser(user.id);
-        throw staffError;
+      if (error) {
+        throw error;
       }
 
       setSubmissionStatus('success');
-      console.log('Akun staf baru berhasil ditambahkan:', staffData);
+      console.log('Akun staf berhasil disimpan:', data);
       onSuccess();
 
-      setName('');
-      setUsername('');
-      setEmail('');
-      setPassword('');
-      setRole(ROLES[0]);
+      if (!currentStaff) {
+          setName('');
+          setUsername('');
+          setEmail('');
+          setPassword('');
+          setRole(ROLES[0]);
+      } else {
+          onCancel();
+      }
 
     } catch (error) {
-      console.error('Error adding staff account:', error);
-      if (error.code === '23505' && error.details.includes('username')) {
-        setErrorMessage('Nama pengguna sudah ada. Harap pilih yang lain.');
+      console.error('Error saving staff account:', error);
+      if (error.code === '23505' && error.details) {
+          if (error.message.includes("violates unique constraint")) {
+              if (error.details.includes('username')) {
+                  setErrorMessage('Nama pengguna sudah ada. Harap pilih yang lain.');
+              } else if (error.details.includes('email')) {
+                  setErrorMessage('Email ini sudah terdaftar sebagai staf. Harap login atau gunakan email lain.');
+              } else {
+                  setErrorMessage(`Konflik data: ${error.message}`);
+              }
+          }
       } else if (error.message.includes("User already registered")) {
-        setErrorMessage("Email ini sudah terdaftar sebagai pengguna. Harap login atau gunakan email lain.");
+        setErrorMessage("Email ini sudah terdaftar sebagai pengguna. Harap masuk atau gunakan email lain.");
       } else {
-        setErrorMessage(`Gagal menambahkan akun staf: ${error.message || 'Terjadi kesalahan tidak dikenal'}.`);
+        setErrorMessage(`Gagal menyimpan akun staf: ${error.message || 'Terjadi kesalahan tidak dikenal'}.`);
       }
       setSubmissionStatus('error');
     } finally {
@@ -140,12 +177,13 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
       <h2 className="text-2xl font-bold text-blue-700 mb-4">Formulir Tambah Akun Staf Baru</h2>
       <p className="text-sm text-red-500 mb-4 font-semibold">
         CATATAN: Akun staf kini dibuat di sistem autentikasi pusat. Konfirmasi email mungkin diperlukan.
+        {currentStaff && !password && <span className="text-orange-500 ml-2"> (Kata sandi tidak diubah jika kosong)</span>}
       </p>
 
       {submissionStatus === 'success' && (
         <div role="alert" className="alert alert-success mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span>Akun staf berhasil ditambahkan!</span>
+          <span>Akun staf berhasil disimpan!</span>
         </div>
       )}
       {submissionStatus === 'error' && (
@@ -168,12 +206,12 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
 
         <div className="form-control">
           <label className="label"><span className="label-text">Email (untuk Login) *</span></label>
-          <input type="email" placeholder="misal: staf@domain.com" className="input input-bordered w-full" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
+          <input type="email" placeholder="misal: staf@domain.com" className="input input-bordered w-full" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading || currentStaff} />
         </div>
 
         <div className="form-control">
           <label className="label"><span className="label-text">Kata Sandi *</span><span className="label-text-alt text-gray-500">Minimal 6 karakter</span></label>
-          <input type="password" placeholder="Masukkan kata sandi" className="input input-bordered w-full" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+          <input type="password" placeholder="Masukkan kata sandi" className="input input-bordered w-full" value={password} onChange={(e) => setPassword(e.target.value)} required={!currentStaff} disabled={loading} />
         </div>
 
         <div className="form-control">
@@ -209,7 +247,7 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
                 Menambahkan Akun...
               </>
             ) : (
-              'Tambah Akun Staf'
+              currentStaff ? 'Simpan Perubahan' : 'Tambah Akun Staf'
             )}
           </button>
         </div>
@@ -221,10 +259,12 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, isLoading }) => {
 
 // --- Komponen Utama Manajemen Staf ---
 export default function StaffManagement() {
+  const { user } = useAuth();
   const [staffList, setStaffList] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
   const [errorList, setErrorList] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
 
   // Fungsi untuk mengambil daftar staf
   const fetchStaff = async () => {
@@ -241,6 +281,7 @@ export default function StaffManagement() {
           role,
           is_active,
           created_at,
+          auth_id,
           department:department_id ( name )
         `)
         .order('name', { ascending: true });
@@ -257,15 +298,59 @@ export default function StaffManagement() {
     }
   };
 
-  // Ambil daftar staf saat komponen dimuat
+  const handleDeleteStaff = async (staffId, staffName, staffAuthId) => {
+    if (user && user.id === staffAuthId) {
+      alert("Anda tidak dapat menghapus akun Anda sendiri saat Anda sedang login.");
+      return;
+    }
+
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus akun staf "${staffName}"?`)) {
+      return;
+    }
+
+    setLoadingList(true);
+    try {
+      const { error: staffTableError } = await supabase
+        .from('staff')
+        .delete()
+        .eq('id', staffId);
+
+      if (staffTableError) {
+        throw staffTableError;
+      }
+
+      console.log(`Akun staf "${staffName}" (ID Auth: ${staffAuthId}) berhasil dihapus.`);
+      
+      fetchStaff();
+
+    } catch (error) {
+      console.error("Error deleting staff account:", error.message);
+      alert(`Gagal menghapus akun staf "${staffName}": ${error.message}`);
+      setErrorList(`Gagal menghapus akun staf "${staffName}": ${error.message}`);
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  const handleEditStaff = (staff) => {
+    setEditingStaff(staff);
+    setShowAddForm(true);
+  };
+
+
   useEffect(() => {
     fetchStaff();
   }, []);
 
-  // Callback setelah formulir penambahan sukses
   const handleAddSuccess = () => {
     setShowAddForm(false);
+    setEditingStaff(null);
     fetchStaff();
+  };
+
+  const handleFormCancel = () => {
+    setShowAddForm(false);
+    setEditingStaff(null);
   };
 
   if (loadingList) {
@@ -298,7 +383,8 @@ export default function StaffManagement() {
       {showAddForm && (
         <AddStaffAccountForm 
           onSuccess={handleAddSuccess} 
-          onCancel={() => setShowAddForm(false)}
+          onCancel={handleFormCancel}
+          currentStaff={editingStaff}
           isLoading={loadingList}
         />
       )}

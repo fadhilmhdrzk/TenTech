@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../../supabaseClient";
 
-const AddDepartmentForm = ({ onSuccess, onCancel, existingDepartmentsCount, isLoading }) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [maxCapacity, setMaxCapacity] = useState('');
-  const [isActive, setIsActive] = useState(true);
+const AddDepartmentForm = ({ onSuccess, onCancel, currentDepartment = null, isLoading, setIsEditing }) => {
+  // Tambahkan state untuk form edit (jika ingin fitur edit penuh diaktifkan)
+  const [name, setName] = useState(currentDepartment ? currentDepartment.name : '');
+  const [description, setDescription] = useState(currentDepartment ? currentDepartment.description : '');
+  const [maxCapacity, setMaxCapacity] = useState(currentDepartment ? currentDepartment.max_capacity : '');
+  const [isActive, setIsActive] = useState(currentDepartment ? currentDepartment.is_active : true);
   const [loading, setLoading] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -30,28 +31,42 @@ const AddDepartmentForm = ({ onSuccess, onCancel, existingDepartmentsCount, isLo
     }
 
     try {
-      const { data, error } = await supabase
-        .from('departments')
-        .insert({
-          name: name.trim(),
-          description: description.trim() || null,
-          max_capacity: parseInt(maxCapacity),
-          is_active: isActive,
-        })
-        .select();
+      let data, error;
+      if (currentDepartment) { // Jika sedang mengedit
+        ({ data, error } = await supabase
+          .from('departments')
+          .update({
+            name: name.trim(),
+            description: description.trim() || null,
+            max_capacity: parseInt(maxCapacity),
+            is_active: isActive,
+            updated_at: new Date().toISOString() // Perbarui timestamp
+          })
+          .eq('id', currentDepartment.id)
+          .select());
+      } else { // Jika sedang menambah
+        ({ data, error } = await supabase
+          .from('departments')
+          .insert({
+            name: name.trim(),
+            description: description.trim() || null,
+            max_capacity: parseInt(maxCapacity),
+            is_active: isActive,
+          })
+          .select());
+      }
 
       if (error) {
         throw error;
       }
 
       setSubmissionStatus('success');
-      console.log('Departemen baru ditambahkan:', data);
-      // Panggil callback sukses dari komponen induk
-      onSuccess();
+      console.log('Departemen berhasil disimpan:', data);
+      onSuccess(); // Panggil callback sukses dari komponen induk
 
     } catch (error) {
-      console.error('Error adding department:', error);
-      setErrorMessage(`Gagal menambahkan departemen: ${error.message || 'Terjadi kesalahan tidak dikenal'}.`);
+      console.error('Error saving department:', error);
+      setErrorMessage(`Gagal menyimpan departemen: ${error.message || 'Terjadi kesalahan tidak dikenal'}.`);
       setSubmissionStatus('error');
     } finally {
       setLoading(false);
@@ -60,12 +75,14 @@ const AddDepartmentForm = ({ onSuccess, onCancel, existingDepartmentsCount, isLo
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-6">
-      <h2 className="text-2xl font-bold text-blue-700 mb-4">Formulir Tambah Departemen Baru</h2>
+      <h2 className="text-2xl font-bold text-blue-700 mb-4">
+        {currentDepartment ? 'Edit Departemen' : 'Formulir Tambah Departemen Baru'}
+      </h2>
       
       {submissionStatus === 'success' && (
         <div role="alert" className="alert alert-success mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span>Departemen berhasil ditambahkan!</span>
+          <span>Departemen berhasil disimpan!</span>
         </div>
       )}
       {submissionStatus === 'error' && (
@@ -99,17 +116,17 @@ const AddDepartmentForm = ({ onSuccess, onCancel, existingDepartmentsCount, isLo
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <button type="button" onClick={onCancel} className="btn btn-outline" disabled={loading}>
+          <button type="button" onClick={() => { onCancel(); setIsEditing(false); }} className="btn btn-outline" disabled={loading}>
             Batal
           </button>
           <button type="submit" className="btn btn-primary" disabled={loading}>
             {loading ? (
               <>
                 <span className="loading loading-spinner"></span>
-                Menambahkan...
+                Menyimpan...
               </>
             ) : (
-              'Tambah Departemen'
+              currentDepartment ? 'Simpan Perubahan' : 'Tambah Departemen'
             )}
           </button>
         </div>
@@ -124,9 +141,9 @@ export default function DepartmentManagement() {
   const [departments, setDepartments] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
   const [errorList, setErrorList] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false); // State untuk toggle form
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState(null); // State untuk departemen yang sedang diedit
 
-  // Fungsi untuk mengambil daftar departemen
   const fetchDepartments = async () => {
     setLoadingList(true);
     setErrorList(null);
@@ -134,7 +151,7 @@ export default function DepartmentManagement() {
       const { data, error } = await supabase
         .from('departments')
         .select('*')
-        .order('name', { ascending: true }); // Urutkan berdasarkan nama
+        .order('name', { ascending: true });
 
       if (error) {
         throw error;
@@ -148,15 +165,90 @@ export default function DepartmentManagement() {
     }
   };
 
-  // Ambil daftar departemen saat komponen dimuat
+  // --- Fungsi untuk memeriksa tiket belum selesai ---
+  const checkUnresolvedTicketsForDepartment = async (departmentId) => {
+    const { count, error } = await supabase
+      .from('tickets')
+      .select('id', { count: 'exact', head: true })
+      .eq('department_id', departmentId)
+      .not('status', 'in', '("completed", "cancelled", "no_show")');
+
+    if (error) {
+      console.error("Error checking unresolved tickets:", error.message);
+      throw new Error("Gagal memeriksa tiket belum selesai.");
+    }
+    return count > 0;
+  };
+
+  // --- Fungsi untuk menghapus departemen ---
+  const handleDeleteDepartment = async (deptId, deptName) => {
+    try {
+      const hasUnresolvedTickets = await checkUnresolvedTicketsForDepartment(deptId);
+      
+      if (hasUnresolvedTickets) {
+        alert(`Departemen "${deptName}" tidak dapat dihapus karena masih memiliki tiket yang belum selesai.`);
+        return;
+      }
+
+      if (!window.confirm(`Apakah Anda yakin ingin menghapus departemen "${deptName}"?
+      Catatan: Tiket dan staf yang terkait akan kehilangan tautan departemennya (menjadi NULL).`)) {
+        return;
+      }
+
+      setLoadingList(true);
+      const { error } = await supabase
+        .from('departments')
+        .delete()
+        .eq('id', deptId);
+
+      if (error) {
+        throw error;
+      }
+
+      console.log(`Departemen "${deptName}" berhasil dihapus.`);
+      fetchDepartments();
+
+    } catch (error) {
+      console.error("Error deleting department:", error.message);
+      alert(`Gagal menghapus departemen "${deptName}": ${error.message}`); // Tampilkan alert juga
+      setErrorList(`Gagal menghapus departemen "${deptName}": ${error.message}`);
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  // --- Fungsi untuk memulai edit departemen ---
+  const handleEditDepartment = async (department) => {
+    try {
+      const hasUnresolvedTickets = await checkUnresolvedTicketsForDepartment(department.id);
+      
+      if (hasUnresolvedTickets) {
+        alert(`Departemen "${department.name}" tidak dapat diedit karena masih memiliki tiket yang belum selesai.`);
+        return;
+      }
+      setEditingDepartment(department); // Set departemen yang akan diedit
+      setShowAddForm(true); // Tampilkan formulir
+    } catch (error) {
+      console.error("Error preparing to edit department:", error.message);
+      alert(`Gagal menyiapkan edit departemen "${department.name}": ${error.message}`);
+    }
+  };
+
+
   useEffect(() => {
     fetchDepartments();
   }, []);
 
-  // Callback setelah formulir penambahan sukses
   const handleAddSuccess = () => {
-    setShowAddForm(false); // Sembunyikan formulir
-    fetchDepartments(); // Perbarui daftar departemen
+    setShowAddForm(false);
+    setEditingDepartment(null); // Clear editing state
+    fetchDepartments();
+  };
+
+  // Handler untuk pembatalan form (baik tambah maupun edit)
+  const handleFormCancel = () => {
+    setShowAddForm(false);
+    setEditingDepartment(null); // Penting: reset editing state saat dibatalkan
   };
 
   if (loadingList) {
@@ -178,20 +270,23 @@ export default function DepartmentManagement() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-extrabold text-blue-700 mb-6">Manajemen Departemen</h1> {/* <<< DIUBAH */}
+      <h1 className="text-3xl font-extrabold text-blue-700 mb-6">Manajemen Departemen</h1>
 
       <div className="flex justify-end mb-4">
-        <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary">
-          {showAddForm ? 'Sembunyikan Formulir' : 'Tambah Departemen Baru'} {/* <<< DIUBAH */}
+        <button 
+          onClick={() => { setShowAddForm(!showAddForm); setEditingDepartment(null); }} // Reset editing state saat toggle
+          className="btn btn-primary"
+        >
+          {showAddForm ? 'Sembunyikan Formulir' : 'Tambah Departemen Baru'}
         </button>
       </div>
 
-      {/* Render formulir secara kondisional */}
       {showAddForm && (
         <AddDepartmentForm 
           onSuccess={handleAddSuccess} 
-          onCancel={() => setShowAddForm(false)} // Tombol Batal untuk menyembunyikan form
-          isLoading={loadingList} // Pass loading state if needed for form disability
+          onCancel={handleFormCancel}
+          currentDepartment={editingDepartment} // Pass department data for editing
+          setIsEditing={setEditingDepartment} // Pass setter for explicit control
         />
       )}
 
@@ -199,19 +294,18 @@ export default function DepartmentManagement() {
         <table className="table w-full">
           <thead className="bg-blue-600 text-white">
             <tr>
-              <th className="py-3 px-4 text-left">Nama Departemen</th> {/* <<< DIUBAH */}
-              <th className="py-3 px-4 text-left">Deskripsi</th> {/* <<< DIUBAH */}
-              <th className="py-3 px-4 text-left">Kapasitas Maksimal</th> {/* <<< DIUBAH */}
-              <th className="py-3 px-4 text-left">Status</th> {/* <<< DIUBAH */}
-              <th className="py-3 px-4 text-left">Dibuat Pada</th> {/* <<< DIUBAH */}
-              {/* Tambah kolom untuk aksi seperti Edit/Hapus jika diperlukan */}
-              <th className="py-3 px-4 text-left">Aksi</th> {/* <<< DIUBAH */}
+              <th className="py-3 px-4 text-left">Nama Departemen</th>
+              <th className="py-3 px-4 text-left">Deskripsi</th>
+              <th className="py-3 px-4 text-left">Kapasitas Maksimal</th>
+              <th className="py-3 px-4 text-left">Status</th>
+              <th className="py-3 px-4 text-left">Dibuat Pada</th>
+              <th className="py-3 px-4 text-left">Aksi</th>
             </tr>
           </thead>
           <tbody>
             {departments.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center py-4 text-gray-500">Belum ada departemen yang terdaftar.</td> {/* <<< DIUBAH */}
+                <td colSpan="6" className="text-center py-4 text-gray-500">Belum ada departemen yang terdaftar.</td>
               </tr>
             ) : (
               departments.map((dept) => (
@@ -221,16 +315,29 @@ export default function DepartmentManagement() {
                   <td className="py-3 px-4 text-gray-600">{dept.max_capacity}</td>
                   <td className="py-3 px-4">
                     <span className={`badge ${dept.is_active ? 'badge-success' : 'badge-error'}`}>
-                      {dept.is_active ? 'Aktif' : 'Tidak Aktif'} {/* <<< DIUBAH */}
+                      {dept.is_active ? 'Aktif' : 'Tidak Aktif'}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-gray-600">
-                    {dept.created_at ? new Date(dept.created_at).toLocaleDateString('id-ID') : '-'} {/* Format tanggal ke ID */}
+                    {dept.created_at ? new Date(dept.created_at).toLocaleDateString('id-ID') : '-'}
                   </td>
                   <td className="py-3 px-4">
-                    {/* Tombol Edit/Hapus bisa ditambahkan di sini */}
-                    <button className="btn btn-sm btn-outline mr-2">Edit</button> {/* <<< DIUBAH */}
-                    <button className="btn btn-sm btn-error btn-outline">Hapus</button> {/* <<< DIUBAH */}
+                    {/* Tombol Edit - Sekarang memanggil handleEditDepartment */}
+                    <button 
+                      onClick={() => handleEditDepartment(dept)} 
+                      className="btn btn-sm btn-outline mr-2"
+                      disabled={loadingList} // Nonaktifkan saat daftar sedang loading
+                    >
+                      Edit
+                    </button> 
+                    {/* Tombol Hapus - Memanggil handleDeleteDepartment */}
+                    <button 
+                      onClick={() => handleDeleteDepartment(dept.id, dept.name)} 
+                      className="btn btn-sm btn-error btn-outline"
+                      disabled={loadingList}
+                    >
+                      Hapus
+                    </button>
                   </td>
                 </tr>
               ))
