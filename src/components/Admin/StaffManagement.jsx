@@ -174,7 +174,7 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, currentStaff = null, isLoadi
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-6">
-      <h2 className="text-2xl font-bold text-blue-700 mb-4">Formulir Tambah Akun Staf Baru</h2>
+      <h2 className="text-2xl font-bold text-[#009bb0] mb-4">Formulir Tambah Akun Staf Baru</h2>
       <p className="text-sm text-red-500 mb-4 font-semibold">
         CATATAN: Akun staf kini dibuat di sistem autentikasi pusat. Konfirmasi email mungkin diperlukan.
         {currentStaff && !password && <span className="text-orange-500 ml-2"> (Kata sandi tidak diubah jika kosong)</span>}
@@ -231,23 +231,41 @@ const AddStaffAccountForm = ({ onSuccess, onCancel, currentStaff = null, isLoadi
 
         <div className="form-control">
           <label className="label cursor-pointer justify-start gap-2">
-            <input type="checkbox" className="checkbox checkbox-primary" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} disabled={loading} />
+            <input
+              type="checkbox"
+              className="checkbox accent-[#00afc5] focus:ring-2 focus:ring-[#00afc5]"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              disabled={loading}
+            />
             <span className="label-text">Akun Aktif</span>
           </label>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <button type="button" onClick={onCancel} className="btn btn-outline" disabled={loading}>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-md font-semibold border border-[#00afc5] text-[#00afc5] hover:bg-[#e0fafd] transition disabled:opacity-50"
+            disabled={loading}
+          >
             Batal
           </button>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
+          
+          <button
+            type="submit"
+            className="px-4 py-2 rounded-md text-white font-semibold shadow transition bg-[#00afc5] hover:bg-[#009bb0] disabled:opacity-50"
+            disabled={loading}
+          >
             {loading ? (
               <>
                 <span className="loading loading-spinner"></span>
                 Menambahkan Akun...
               </>
+            ) : currentStaff ? (
+              'Simpan Perubahan'
             ) : (
-              currentStaff ? 'Simpan Perubahan' : 'Tambah Akun Staf'
+              'Tambah Akun Staf'
             )}
           </button>
         </div>
@@ -372,10 +390,10 @@ export default function StaffManagement() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-extrabold text-blue-700 mb-6">Manajemen Staf</h1>
+      <h1 className="text-3xl font-extrabold text-[#009bb0] mb-6">Manajemen Staf</h1>
 
       <div className="flex justify-end mb-4">
-        <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary">
+        <button onClick={() => setShowAddForm(!showAddForm)} className="px-4 py-2 rounded-md text-white font-semibold shadow transition bg-[#00afc5] hover:bg-[#009bb0]">
           {showAddForm ? 'Sembunyikan Formulir' : 'Tambah Akun Staf Baru'}
         </button>
       </div>
@@ -391,7 +409,7 @@ export default function StaffManagement() {
 
       <div className="bg-white rounded-xl shadow-xl overflow-hidden mt-6">
         <table className="table w-full">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-[#009bb0] text-white">
             <tr>
               <th className="py-3 px-4 text-left">Nama Lengkap</th>
               <th className="py-3 px-4 text-left">Nama Pengguna</th>

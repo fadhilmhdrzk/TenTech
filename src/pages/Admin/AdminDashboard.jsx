@@ -202,14 +202,14 @@ const AdminDashboard = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Dasbor Rumah Sakit</h1>
+        <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Dashboard Rumah Sakit</h1>
         <p className="text-gray-600">Selamat datang kembali! Ini adalah yang terjadi di rumah sakit Anda hari ini. (Per {format(new Date(), 'MMM dd,PPPP HH:mm')})</p>
       </div>
 
       {overallLoading && (
         <div className="text-center py-10">
           <span className="loading loading-spinner loading-lg text-blue-600"></span>
-          <p className="mt-2 text-lg text-gray-700">Memuat data dasbor...</p>
+          <p className="mt-2 text-lg text-gray-700">Memuat data dashboard...</p>
         </div>
       )}
 

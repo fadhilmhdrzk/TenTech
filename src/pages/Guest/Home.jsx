@@ -38,6 +38,11 @@ export default function Home() {
         <Swiper
           navigation={true}
           loop={true}
+          autoplay={{
+          delay: 5000,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+          }}
           modules={[Navigation]}
           className="w-full h-full"
         >
@@ -151,7 +156,7 @@ export default function Home() {
       </div>
 
       {/* YouTube Section */}
-      <div className="mt-20 w-full flex justify-center">
+      <div className="mt-10 w-full flex justify-center">
         <div className="w-full max-w-6xl px-4">
           <div className="aspect-video w-full mb-10 rounded-lg overflow-hidden shadow-lg">
             <iframe

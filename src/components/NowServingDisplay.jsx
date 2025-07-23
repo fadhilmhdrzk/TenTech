@@ -192,7 +192,7 @@ export default function NowServingDisplay({ departmentId, departmentName = "Depa
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 md:p-6 rounded-lg shadow-xl text-center">
+    <div className="bg-gradient-to-r from-[#00afc5] to-blue-600 text-white p-4 md:p-6 rounded-lg shadow-xl text-center">
       {/* Tampilkan nama departemen di sini */}
       <h3 className="text-lg md:text-xl font-bold mb-1">{departmentName}</h3> 
       <h2 className="text-xl md:text-2xl font-bold mb-2">SEKARANG DILAYANI</h2>
