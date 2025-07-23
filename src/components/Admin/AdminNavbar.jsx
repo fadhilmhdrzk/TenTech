@@ -48,7 +48,7 @@ const AdminNavbar = ({ user }) => {
 
         {/* User Profile - Tetap di sini */}
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+          <div className="w-8 h-8 bg-[#00afc5] rounded-full flex items-center justify-center text-white text-sm font-semibold">
             {user.name
               .split(" ")
               .map((n) => n[0])

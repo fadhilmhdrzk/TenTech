@@ -75,7 +75,7 @@ const AddDepartmentForm = ({ onSuccess, onCancel, currentDepartment = null, isLo
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-6">
-      <h2 className="text-2xl font-bold text-blue-700 mb-4">
+      <h2 className="text-2xl font-bold text-[#00afc5] mb-4">
         {currentDepartment ? 'Edit Departemen' : 'Formulir Tambah Departemen Baru'}
       </h2>
       
@@ -94,47 +94,94 @@ const AddDepartmentForm = ({ onSuccess, onCancel, currentDepartment = null, isLo
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
-          <label className="label"><span className="label-text">Nama Departemen *</span></label>
-          <input type="text" placeholder="misal: Kedokteran Umum" className="input input-bordered w-full" value={name} onChange={(e) => setName(e.target.value)} required disabled={loading} />
+          <label className="label">
+            <span className="label-text">Nama Departemen *</span>
+          </label>
+          <input
+            type="text"
+            placeholder="misal: Kedokteran Umum"
+            className="input input-bordered w-full"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            disabled={loading}
+          />
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Deskripsi (Opsional)</span></label>
-          <textarea placeholder="misal: Mengelola berbagai kondisi medis umum." className="textarea textarea-bordered h-24 w-full" value={description} onChange={(e) => setDescription(e.target.value)} disabled={loading}></textarea>
+          <label className="label">
+            <span className="label-text">Deskripsi (Opsional)</span>
+          </label>
+          <textarea
+            placeholder="misal: Mengelola berbagai kondisi medis umum."
+            className="textarea textarea-bordered h-24 w-full"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={loading}
+          ></textarea>
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Kapasitas Maksimal (misal: Tempat Tidur / Pasien Bersamaan) *</span></label>
-          <input type="number" placeholder="misal: 30" className="input input-bordered w-full" value={maxCapacity} onChange={(e) => setMaxCapacity(e.target.value)} min="0" required disabled={loading} />
+          <label className="label">
+            <span className="label-text">
+              Kapasitas Maksimal (misal: Tempat Tidur / Pasien Bersamaan) *
+            </span>
+          </label>
+          <input
+            type="number"
+            placeholder="misal: 30"
+            className="input input-bordered w-full"
+            value={maxCapacity}
+            onChange={(e) => setMaxCapacity(e.target.value)}
+            min="0"
+            required
+            disabled={loading}
+          />
         </div>
 
         <div className="form-control">
           <label className="label cursor-pointer justify-start gap-2">
-            <input type="checkbox" className="checkbox checkbox-primary" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} disabled={loading} />
+            <input
+              type="checkbox"
+              className="checkbox accent-[#00afc5] focus:ring-2 focus:ring-[#00afc5]"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              disabled={loading}
+            />
             <span className="label-text">Aktif?</span>
           </label>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <button type="button" onClick={() => { onCancel(); setIsEditing(false); }} className="btn btn-outline" disabled={loading}>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-md font-semibold border border-[#00afc5] text-[#00afc5] hover:bg-[#e0fafd] transition disabled:opacity-50"
+            disabled={loading}
+          >
             Batal
           </button>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? (
-              <>
-                <span className="loading loading-spinner"></span>
-                Menyimpan...
-              </>
-            ) : (
-              currentDepartment ? 'Simpan Perubahan' : 'Tambah Departemen'
-            )}
-          </button>
+          <button
+          type="submit"
+          className="px-4 py-2 rounded-md text-white font-semibold shadow transition bg-[#00afc5] hover:bg-[#009bb0] disabled:opacity-50"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <span className="loading loading-spinner"></span>
+              Menyimpan...
+            </>
+          ) : currentDepartment ? (
+            "Simpan Perubahan"
+          ) : (
+            "Tambah Departemen"
+          )}
+        </button>
         </div>
       </form>
     </div>
   );
 };
-
 
 // --- Komponen Utama Manajemen Departemen ---
 export default function DepartmentManagement() {
@@ -270,16 +317,19 @@ export default function DepartmentManagement() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-extrabold text-blue-700 mb-6">Manajemen Departemen</h1>
+      <h1 className="text-3xl font-extrabold text-[#00afc5] mb-6">Manajemen Departemen</h1>
 
       <div className="flex justify-end mb-4">
         <button 
-          onClick={() => { setShowAddForm(!showAddForm); setEditingDepartment(null); }} // Reset editing state saat toggle
-          className="btn btn-primary"
-        >
+          onClick={() => {
+            setShowAddForm(!showAddForm);
+            setEditingDepartment(null);
+          }}
+          className="px-4 py-2 rounded-md text-white font-semibold shadow transition bg-[#00afc5] hover:bg-[#009bb0]">
           {showAddForm ? 'Sembunyikan Formulir' : 'Tambah Departemen Baru'}
         </button>
-      </div>
+    </div>
+
 
       {showAddForm && (
         <AddDepartmentForm 
@@ -292,7 +342,7 @@ export default function DepartmentManagement() {
 
       <div className="bg-white rounded-xl shadow-xl overflow-hidden mt-6">
         <table className="table w-full">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-[#00afc5] text-white">
             <tr>
               <th className="py-3 px-4 text-left">Nama Departemen</th>
               <th className="py-3 px-4 text-left">Deskripsi</th>

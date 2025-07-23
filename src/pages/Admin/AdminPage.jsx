@@ -80,7 +80,7 @@ const AdminPage = () => {
   if (loading) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen flex justify-center items-center">
-        <span className="loading loading-spinner loading-lg text-blue-600"></span>
+        <span className="loading loading-spinner loading-lg text-[#00afc5]"></span>
         <p className="ml-2 text-lg text-gray-700">Memuat data pasien...</p>
       </div>
     );
@@ -110,7 +110,7 @@ const AdminPage = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header dengan ID Pasien */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-lg flex justify-between items-center">
+      <div className="bg-gradient-to-r from-[#00afc5] to-blue-700 text-white p-4 rounded-t-lg flex justify-between items-center">
         <h2 className="text-lg font-semibold">ID Pasien : {displayPatient.id}</h2>
         <button className="btn btn-sm bg-white/20 border-white/30 text-white hover:bg-white/30">
           ← Kembali
@@ -122,8 +122,8 @@ const AdminPage = () => {
         <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-8">
           {/* Gambar Profil dan Nama */}
           <div className="text-center w-full md:w-auto">
-            <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+            <div className="w-24 h-24 bg-[#00afc5] rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-16 h-16 bg-[#00afc5] rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                 </svg>
@@ -182,7 +182,7 @@ const AdminPage = () => {
       <div className="bg-white shadow-sm rounded-b-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="table w-full">
-            <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+            <thead className="bg-gradient-to-r from-[#00afc5] to-blue-700 text-white">
               <tr>
                 <th className="text-left font-semibold py-3 px-4">Nama</th>
                 <th className="text-left font-semibold py-3 px-4">Jenis Kelamin</th>

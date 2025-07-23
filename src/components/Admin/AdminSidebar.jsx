@@ -73,11 +73,11 @@ const AdminSidebar = () => {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-full w-20 bg-gradient-to-b from-blue-600 to-blue-800 shadow-lg z-50 flex flex-col">
+    <div className="fixed left-0 top-0 h-full w-20 bg-gradient-to-b from-[#00afc5] to-blue-800 shadow-lg z-50 flex flex-col">
       {/* Logo */}
       <div className="flex items-center justify-center py-6">
         <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-[#00afc5] rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-sm">H</span>
           </div>
         </div>
@@ -91,7 +91,7 @@ const AdminSidebar = () => {
             onClick={() => handleNavigation(item.path)}
             className={`group relative w-14 h-14 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200 ${
               isActive(item.path)
-                ? 'bg-white text-blue-600 shadow-lg'
+                ? 'bg-white text-[#00afc5] shadow-lg'
                 : 'text-white hover:bg-white/20 hover:scale-105'
             }`}
             title={item.label}
