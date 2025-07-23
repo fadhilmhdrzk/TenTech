@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../supabaseClient";
 import { format, parseISO } from "date-fns";
-import NowServingDisplay from "../../components/NowServingDisplay"; // Sesuaikan path jika perlu
 import MultiDepartmentQueueBoard from "../../components/MultiDepartmentQueueBoard"; // <<< IMPORT BARU
 
 export default function Tickets() {
