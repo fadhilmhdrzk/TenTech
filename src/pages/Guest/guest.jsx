@@ -275,18 +275,22 @@ export default function Guest() {
   }
 
 
-  return (
-    <div className="flex justify-center px-4">
-      {/* Container Form */}
-      <div className="relative p-10 pt-20 max-w-5xl w-full bg-white rounded-2xl shadow-2xl my-10 border border-gray-200">
-        
-        <img src={logo} alt="Logo" className="h-20 w-auto" />
 
-        {/* Heading */}
-        <h1 className="text-4xl font-bold text-center text-teal-600 mb-4">Ambil Tiket Rumah Sakit Anda</h1>
-        <p className="text-center text-gray-500 mb-10">
-          Harap isi detail Anda untuk mendapatkan nomor antrean kunjungan Anda.
-        </p>
+ return (
+  <div className="flex justify-center px-4">
+    {/* Container Form */}
+    <div className="relative p-10 pt-20 max-w-5xl w-full bg-white rounded-2xl shadow-2xl my-10 border border-gray-200">
+      
+      {/* Header dengan Logo dan Judul */}
+      <div className="flex flex-col items-center justify-center mb-6">
+       <div className="flex items-center justify-center gap-4 mb-4">
+ <img src={logo} alt="Logo" className="absolute top-13 left-7 h-25 w-25" />
+  <h1 className="text-4xl md:text-5xl font-bold text-teal-600">Ambil Tiket Rumah Sakit Anda</h1>
+    </div>
+    <p className="text-gray-500 text-center mb-10 text-base md:text-lg">
+      Harap isi detail Anda untuk mendapatkan nomor antrean kunjungan Anda.
+    </p>
+      </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
